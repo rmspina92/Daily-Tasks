@@ -1,0 +1,1517 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F1EA; --panel:#FFFFFF; --ink:#1E2230; --muted:#707482;
+  --line:#E4DFD3; --line2:#EFEBE1; --red:#E5484D; --hour:52px;
+  --shadow:0 1px 2px rgba(30,34,48,.06),0 4px 14px rgba(30,34,48,.05);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);
+  display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;font-size:14px}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #3B82F6;outline-offset:2px}
+
+/* ---------- Top bar ---------- */
+.top{display:flex;align-items:center;gap:20px;padding:14px 20px 10px;flex-wrap:wrap}
+.top .left{min-width:220px;flex:1}
+.top h1{margin:0;font-size:24px;letter-spacing:-.02em;font-weight:700}
+.top .sub{color:var(--muted);margin-top:2px;font-size:13px}
+.nav{display:flex;align-items:center;gap:6px;background:var(--panel);padding:4px;border-radius:12px;box-shadow:var(--shadow)}
+.nav button,.nav input{border:0;background:transparent;border-radius:8px;padding:7px 11px;font-weight:500}
+.nav button:hover{background:#F0ECE3}
+.nav .today{background:var(--ink);color:#fff}
+.nav .today:hover{background:#343A50}
+.nav input[type=date]{cursor:pointer}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--panel);padding:8px 12px;border-radius:10px;font-weight:500;transition:background .15s,border-color .15s}
+.btn:hover{background:#F8F5EE;border-color:#D8D2C3}
+.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.primary:hover{background:#343A50}
+.btn.danger{color:#B42318;border-color:#F3C7C3}
+.btn.danger.armed{background:#B42318;color:#fff;border-color:#B42318}
+.btn.sm{padding:5px 9px;font-size:12.5px;border-radius:8px}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:2px}
+.seg button{border:0;background:transparent;padding:6px 10px;border-radius:8px;font-size:12.5px;font-weight:500;color:var(--muted)}
+.seg button.on{background:var(--ink);color:#fff}
+.seg button:disabled{opacity:.35;cursor:default}
+
+/* ---------- Layout ---------- */
+main{flex:1;min-height:0;display:flex;gap:16px;padding:0 20px 16px}
+.side{width:300px;flex:none;background:var(--panel);border-radius:18px;box-shadow:var(--shadow);padding:16px;overflow:auto;display:flex;flex-direction:column;gap:18px;min-height:0}
+.side h3{margin:0 0 8px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.side .hint{margin:0 0 10px;color:var(--muted);font-size:12.5px;line-height:1.45}
+.right{flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;min-width:0}
+
+/* ---------- Library ---------- */
+.lib{display:flex;flex-direction:column;gap:8px}
+.tcard{--c:#999;position:relative;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;background:var(--c);
+  cursor:grab;user-select:none;touch-action:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.08);
+  transition:transform .12s,box-shadow .12s}
+.tcard:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06),0 6px 14px rgba(30,34,48,.16)}
+.tcard .ic{font-size:20px;width:26px;text-align:center;flex:none}
+.tcard .meta{display:flex;flex-direction:column;min-width:0;flex:1}
+.tcard .meta b{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tcard .meta small{opacity:.78;font-size:12px}
+.tcard .edit{border:0;background:rgba(255,255,255,.0);color:inherit;opacity:.0;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;transition:opacity .12s,background .12s}
+.tcard:hover .edit,.tcard:focus-within .edit{opacity:.75}
+.tcard .edit:hover{background:rgba(0,0,0,.14);opacity:1}
+.add-task{border:1.5px dashed #CFC8B7;background:transparent;border-radius:12px;padding:11px;color:var(--muted);font-weight:600;transition:all .15s}
+.add-task:hover{border-color:var(--ink);color:var(--ink);background:#FAF8F3}
+.ghost{position:fixed;z-index:1000;pointer-events:none;width:230px;transform:rotate(-2deg);box-shadow:0 14px 30px rgba(30,34,48,.28)!important;opacity:.95}
+body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!important;-webkit-user-select:none!important}
+body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!important;-webkit-user-select:none!important}
+
+.panel-sec .row{display:flex;gap:6px;flex-wrap:wrap}
+.status{font-size:12.5px;line-height:1.45;margin:0 0 8px;color:var(--ink)}
+.status .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:#B8B2A3}
+.status .dot.ok{background:#22C55E}.status .dot.bad{background:var(--red)}.status .dot.warn{background:#F59E0B}
+
+/* ---------- Week bar ---------- */
+.weekbar{display:flex;align-items:stretch;gap:6px}
+.weekbar .wk{border:1px solid var(--line);background:var(--panel);border-radius:12px;width:30px;font-size:16px;color:var(--muted)}
+.weekbar .wk:hover{background:#F8F5EE;color:var(--ink)}
+.chips{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:6px;min-width:0}
+.chip{border:1px solid transparent;background:var(--panel);border-radius:12px;padding:6px 4px 5px;display:flex;flex-direction:column;align-items:center;gap:1px;box-shadow:var(--shadow);transition:transform .12s,background .12s;min-width:0}
+.chip:hover{transform:translateY(-1px)}
+.chip .wd{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.chip .dn{font-size:17px;font-weight:700;line-height:1.1}
+.chip .dots{display:flex;gap:3px;height:6px;margin-top:3px}
+.chip .dots i{width:6px;height:6px;border-radius:50%;display:block}
+.chip.sel{background:var(--ink);color:#fff}
+.chip.sel .wd{color:#B9BDCC}
+.chip.istoday:not(.sel) .dn{color:#E5484D}
+.chip.drop{border-color:#3B82F6;background:#EAF2FF;transform:scale(1.04)}
+.chip.sel.drop{background:#2B3350}
+
+/* ---------- Grid ---------- */
+.gridpanel{flex:1;min-height:0;background:var(--panel);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;display:flex}
+.scroll{flex:1;overflow-y:auto;position:relative}
+.tl-grid{display:flex;flex-direction:row;align-items:flex-start;padding:12px 14px 12px 0;position:relative}
+.gutter{width:64px;flex:none;position:relative}
+.gutter span{position:absolute;right:10px;transform:translateY(-50%);font-size:11.5px;color:var(--muted);font-weight:500;white-space:nowrap}
+.track{flex:1;position:relative;min-width:0;border-bottom:1px solid var(--line);
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(var(--line2) 1px,transparent 1px);
+  background-size:100% var(--hour),100% var(--hour);background-position:0 0,0 calc(var(--hour)/2)}
+.empty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:#B3AD9F;font-size:14px;text-align:center;padding:0 20px;z-index:0}
+.empty div{max-width:300px;line-height:1.5}
+.now{position:absolute;left:-6px;right:0;height:0;border-top:2px solid var(--red);z-index:15;pointer-events:none}
+.now::before{content:'';position:absolute;left:0;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--red)}
+
+.ev{--c:#999;position:absolute;border-radius:10px;background:var(--c);padding:6px 10px;overflow:hidden;cursor:grab;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.07),0 1px 2px rgba(20,20,40,.12);touch-action:none;user-select:none;z-index:2;
+  transition:box-shadow .15s,top .22s cubic-bezier(.2,.8,.2,1)}
+.ev:hover{box-shadow:inset 0 0 0 1px rgba(0,0,0,.07),0 8px 18px rgba(20,20,40,.2);z-index:5}
+.ev.dragging{z-index:30;cursor:grabbing;box-shadow:0 14px 28px rgba(20,20,40,.28);opacity:.96}
+.ev .l1{display:flex;align-items:center;gap:6px;flex-wrap:wrap;row-gap:1px}
+.ev .ic{font-size:15px;flex:none}
+.ev .nm{font-weight:600;font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev .tm{order:3;flex-basis:100%;font-size:12px;opacity:.8;white-space:nowrap}
+.ev .bell{order:2;border:0;background:transparent;color:inherit;opacity:.38;min-width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;gap:1px;flex:none;padding:0 3px}
+.ev .bell .bn{font-size:10px;font-weight:800;line-height:1}
+.ev .bell:hover{background:rgba(0,0,0,.14);opacity:.9}
+.ev .bell.on{opacity:1}
+.ev .bell.on svg{fill:currentColor}
+.ev.compact{padding:0 8px}
+.ev.compact .l1{flex-wrap:nowrap;height:100%}
+.ev.compact .nm{flex:0 1 auto}
+.ev.compact .tm{order:1;flex:1 0 auto;flex-basis:auto;margin-left:4px}
+.ev.compact .ic{font-size:13px}
+.ev.compact .bell{min-width:18px;height:18px;padding:0 2px}
+.ev.compact .bell .bn{font-size:9px}
+.ev.compact .bell svg{width:13px;height:13px}
+.ev .h{position:absolute;left:0;right:0;height:var(--hh,5px);pointer-events:none;z-index:3;transition:background .1s}
+.ev .h.top{top:0}.ev .h.bottom{bottom:0}
+.ev .h::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:3px;margin:-1.5px 0 0 -15px;border-radius:3px;background:currentColor;opacity:0;transition:opacity .1s}
+.ev[data-zone="top"],.ev[data-zone="bottom"]{cursor:ns-resize}
+.ev[data-zone="top"] .h.top,.ev[data-zone="bottom"] .h.bottom{background:rgba(0,0,0,.2)}
+.ev[data-zone="top"] .h.top::after,.ev[data-zone="bottom"] .h.bottom::after{opacity:.9}
+.ev.resizing{z-index:30;box-shadow:0 10px 22px rgba(20,20,40,.25);transition:box-shadow .15s}
+.ev.pushed{z-index:4;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07),0 8px 18px rgba(20,20,40,.22)}
+.preview{position:absolute;left:4px;right:4px;border:2px dashed var(--c);background:color-mix(in srgb,var(--c) 22%,transparent);border-radius:10px;z-index:25;pointer-events:none;
+  font-size:12px;font-weight:600;padding:4px 10px;color:var(--ink)}
+
+/* ---------- Arraste físico ---------- */
+.tcard.lifted{opacity:.4;transform:none!important;box-shadow:none;outline:2px dashed rgba(30,34,48,.28);outline-offset:-3px}
+.dg{position:fixed;left:0;top:0;z-index:1000;pointer-events:none;border-radius:12px;background:var(--c);display:flex;flex-direction:column;justify-content:center;
+  padding:0 14px;overflow:hidden;will-change:transform;transform-origin:50% 25%;
+  box-shadow:0 22px 44px rgba(30,34,48,.34),0 6px 12px rgba(30,34,48,.22),inset 0 0 0 1px rgba(0,0,0,.08);
+  transition:width .22s cubic-bezier(.2,.8,.2,1),height .22s cubic-bezier(.2,.8,.2,1),border-radius .2s,box-shadow .2s,padding .2s}
+.dg .l1{display:flex;align-items:center;gap:8px}
+.dg .ic{font-size:19px;flex:none}
+.dg b{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dg small{font-size:12px;opacity:.8;margin-left:27px;white-space:nowrap}
+.dg.inblock{border-radius:10px;justify-content:flex-start;padding:6px 10px;opacity:.96;
+  box-shadow:0 14px 30px rgba(30,34,48,.3),0 3px 8px rgba(30,34,48,.2),inset 0 0 0 1px rgba(0,0,0,.07)}
+.dg.inblock .ic{font-size:15px}
+.dg.inblock b{font-size:14px}
+.dg.inblock small{margin-left:0}
+.dg.landing{transition:transform .21s cubic-bezier(.2,.9,.3,1.15),width .21s,height .21s,opacity .21s,box-shadow .21s;box-shadow:0 2px 6px rgba(30,34,48,.18)}
+.preview{transition:top .09s ease-out,height .12s ease-out,box-shadow .15s}
+.preview.stuck{border-style:solid;box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 28%,transparent)}
+.guide{position:absolute;left:-6px;right:0;height:0;border-top:2px solid var(--c,#1E2230);opacity:.55;z-index:24;pointer-events:none;display:none}
+.tbubble{position:absolute;right:6px;transform:translateY(-50%);background:var(--ink);color:#fff;font-size:11.5px;font-weight:600;padding:3px 7px;border-radius:7px;
+  z-index:6;display:none;white-space:nowrap;pointer-events:none;box-shadow:0 4px 10px rgba(30,34,48,.25)}
+.ev.dragging{transform:scale(1.015);transition:top .09s ease-out,height .09s ease-out,box-shadow .15s,transform .15s}
+@keyframes evpop{0%{transform:scale(.95);opacity:.5}60%{transform:scale(1.02);opacity:1}100%{transform:none}}
+.ev.pop{animation:evpop .3s cubic-bezier(.2,.9,.3,1.2)}
+
+.checks{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
+.rmenu{position:fixed;z-index:2500;background:#fff;color:var(--ink);border-radius:12px;box-shadow:0 14px 34px rgba(30,34,48,.28),0 0 0 1px rgba(0,0,0,.05);
+  padding:12px 14px;width:270px;display:flex;flex-direction:column;gap:10px;font-size:13.5px;animation:pop .15s}
+.rmenu .rm-t{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- Modal / toast ---------- */
+.overlay{position:fixed;inset:0;background:rgba(30,34,48,.42);backdrop-filter:blur(2px);display:grid;place-items:center;z-index:2000;padding:16px;animation:fade .15s}
+.modal{background:#fff;border-radius:18px;padding:22px;width:min(440px,100%);max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(30,34,48,.3);animation:pop .18s}
+.modal h2{margin:0 0 14px;font-size:20px;letter-spacing:-.01em}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field>label,.field>.lbl{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.field input[type=text],.field input[type=time],.field input[type=number]{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff;width:100%}
+.field input:focus{border-color:#3B82F6;outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:#1E2230}
+.swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sw{width:28px;height:28px;border-radius:50%;border:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);padding:0}
+.sw.sel{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink)}
+.swatches input[type=color]{width:34px;height:30px;border:1px solid var(--line);border-radius:8px;padding:0;background:#fff;cursor:pointer}
+.emojis{display:flex;flex-wrap:wrap;gap:4px}
+.emojis button{border:1px solid transparent;background:#F6F3EC;border-radius:8px;width:34px;height:34px;font-size:17px;padding:0}
+.emojis button:hover{border-color:var(--ink)}
+.icon-row{display:flex;gap:10px;align-items:center}
+.icon-row input{width:64px!important;text-align:center;font-size:20px}
+.mfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;align-items:center}
+.mfoot .sp{flex:1}
+.err{color:#B42318;font-size:12.5px;margin:-4px 0 10px;min-height:0}
+.days{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+.days label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px 10px;cursor:pointer}
+.days label:has(input:checked){background:#F1EEE6;border-color:#CFC8B7}
+.days small{color:var(--muted)}
+.quick{display:flex;gap:6px;margin-bottom:6px}
+.note{color:var(--muted);font-size:12.5px;line-height:1.45;margin:6px 0 0}
+
+#toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:3000;max-width:min(380px,calc(100vw - 36px))}
+.toast{background:var(--ink);color:#fff;border-radius:12px;padding:11px 14px;box-shadow:0 12px 30px rgba(30,34,48,.35);font-size:13.5px;animation:pop .2s;display:flex;gap:10px;align-items:flex-start}
+.toast.rem{background:#fff;color:var(--ink);border-left:6px solid var(--c);padding:14px 14px 14px 14px}
+.toast.rem b{display:block;font-size:15px;margin-bottom:2px}
+.toast.rem span{color:var(--muted)}
+.toast .x{margin-left:auto;border:0;background:transparent;color:inherit;opacity:.6;font-size:18px;line-height:1;padding:0 2px}
+.toast .x:hover{opacity:1}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+
+@media (max-width:860px){
+  body{overflow:auto;height:auto}
+  main{flex-direction:column;padding:0 12px 12px}
+  .side{width:auto;overflow:visible}
+  .lib{display:grid;grid-template-columns:repeat(2,1fr)}
+  .add-task{grid-column:1/-1}
+  .gridpanel{height:75vh;flex:none}
+  .top{padding:14px 12px 10px}
+  .chip .dn{font-size:15px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="left">
+    <h1 id="dateTitle"></h1>
+    <div class="sub" id="dateSub"></div>
+  </div>
+  <div class="nav">
+    <button id="prevDay" data-i18n-aria="prevDay" data-i18n-title="prevDayT" aria-label="Previous day" title="Previous day (←)">‹</button>
+    <button id="goToday" class="today" data-i18n="today">Today</button>
+    <button id="nextDay" data-i18n-aria="nextDay" data-i18n-title="nextDayT" aria-label="Next day" title="Next day (→)">›</button>
+    <input type="date" id="datePick" data-i18n-aria="pickDate" aria-label="Pick a date">
+  </div>
+  <div class="tools">
+    <button class="btn" id="copyDay" data-i18n="copyDay">Copy day to…</button>
+    <button class="btn danger" id="clearDay" data-i18n="clearDay">Clear day</button>
+    <div class="seg" role="group" data-i18n-aria="timeFmt" aria-label="Time format"><button id="f12">12h</button><button id="f24">24h</button></div>
+    <div class="seg" role="group" data-i18n-aria="zoomBars" aria-label="Block zoom"><button id="zOut" data-i18n-title="zoomOut" data-i18n-aria="zoomOut" title="Make blocks smaller" aria-label="Make blocks smaller">−</button><button id="zLbl" data-i18n-title="zoomReset" title="Back to the size that fits the screen" style="min-width:52px">100%</button><button id="zIn" data-i18n-title="zoomIn" data-i18n-aria="zoomIn" title="Make blocks bigger" aria-label="Make blocks bigger">+</button></div>
+    <div class="seg" role="group" data-i18n-aria="language" aria-label="Language"><button id="lang-en" title="English" aria-label="English">EN</button><button id="lang-es" title="Español" aria-label="Español">ES</button><button id="lang-pt" title="Português" aria-label="Português">PT</button></div>
+  </div>
+</header>
+
+<main>
+  <aside class="side">
+    <section>
+      <h3 data-i18n="yourTasks">Your tasks</h3>
+      <p class="hint" data-i18n="libHint"></p>
+      <div class="lib" id="lib"></div>
+    </section>
+    <section class="panel-sec">
+      <h3 data-i18n="reminders">Reminders</h3>
+      <p class="status" id="notifStatus"></p>
+      <div class="row">
+        <button class="btn sm" id="notifBtn" data-i18n="enableNotif">Enable notifications</button>
+        <button class="btn sm" id="notifTest" data-i18n="test">Test</button>
+      </div>
+      <p class="note" data-i18n="remNote"></p>
+    </section>
+    <section class="panel-sec">
+      <h3 data-i18n="data">Data</h3>
+      <p class="status" id="storeStatus"></p>
+      <div class="row">
+        <button class="btn sm" id="exportBtn" data-i18n="exportBackup">Export backup</button>
+        <button class="btn sm" id="importBtn" data-i18n="importBackup">Import</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </div>
+    </section>
+  </aside>
+
+  <div class="right">
+    <div class="weekbar">
+      <button class="wk" id="prevWeek" data-i18n-aria="prevWeek" data-i18n-title="prevWeek" aria-label="Previous week" title="Previous week">«</button>
+      <div class="chips" id="chips"></div>
+      <button class="wk" id="nextWeek" data-i18n-aria="nextWeek" data-i18n-title="nextWeek" aria-label="Next week" title="Next week">»</button>
+    </div>
+    <div class="gridpanel">
+      <div class="scroll" id="scrollEl">
+        <div class="tl-grid">
+          <div class="gutter" id="gutter"></div>
+          <div class="track" id="track"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= Config ================= */
+const STORE_KEY = 'meu-dia-v1';
+const START_H = 9, END_H = 21;          // grade de 9h às 21h
+let HOUR_H = 52, PX_MIN = HOUR_H / 60;                       // a altura da hora é calculada para a grade caber na tela
+const MIN_HOUR_H = 36, MAX_HOUR_H = 110, GRID_PAD = 24;
+const ZLEVELS = [0.75, 1, 1.35, 1.8, 2.4, 3.2];   // 100% = a grade inteira cabe na tela
+const SNAP = 5, QUARTER = 15, MIN_DUR = 15, REMIND_BEFORE = 10;
+const MAGNET_PX = 16, QUARTER_PX = 4;           // alcance dos "ímãs" em pixels
+const magnetMin = () => MAGNET_PX / PX_MIN, quarterMin = () => QUARTER_PX / PX_MIN;
+const PALETTE = ['#F59E0B','#F97316','#EF4444','#EC4899','#A855F7','#6366F1','#3B82F6','#38BDF8','#14B8A6','#22C55E','#84CC16','#78716C'];
+const ICONS = ['💬','🎧','☕','🍽️','📞','📧','📝','👥','📚','🧠','🏃','⭐'];
+
+/* ================= Helpers ================= */
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+const pad = n => String(n).padStart(2, '0');
+const keyOf = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseKey = k => { const [y,m,d] = k.split('-').map(Number); return new Date(y, m-1, d); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const mondayOf = d => { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - ((x.getDay()+6) % 7)); return x; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const MIN_T = START_H*60, MAX_T = END_H*60;
+
+function el(tag, props = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (v == null || v === false) continue;
+    if (k === 'class') n.className = v;
+    else if (k === 'style') n.style.cssText = v;
+    else if (k === 'html') n.innerHTML = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else if (v === true) n.setAttribute(k, '');
+    else n.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => { if (c == null || c === false) return; n.append(c.nodeType ? c : document.createTextNode(c)); });
+  return n;
+}
+function textOn(hex) {
+  const h = hex.replace('#','');
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  return (r*299 + g*587 + b*114)/1000 >= 128 ? '#1B1D26' : '#FFFFFF';
+}
+const BELL = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+const PENCIL = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+
+/* ================= i18n (EN / ES / PT) ================= */
+const LANGS = ['en', 'es', 'pt'];
+const LOCALE = { en: 'en-US', es: 'es-ES', pt: 'pt-BR' };
+const I18N = {
+  en: {
+    pageTitle: 'My Day',
+    wd: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
+    prevDay: 'Previous day', prevDayT: 'Previous day (←)', nextDay: 'Next day', nextDayT: 'Next day (→)',
+    today: 'Today', pickDate: 'Pick a date',
+    copyDay: 'Copy day to…', clearDay: 'Clear day',
+    timeFmt: 'Time format', zoomBars: 'Block zoom', zoomOut: 'Make blocks smaller', zoomIn: 'Make blocks bigger', zoomReset: 'Back to the size that fits the screen',
+    language: 'Language',
+    yourTasks: 'Your tasks',
+    libHint: 'Press and drag onto the grid, then release at the time you want. If you drop it between other blocks, the ones below adjust and snap to the end of the new one. Or click to place it right after the last task of the day.',
+    reminders: 'Reminders', enableNotif: 'Enable notifications', test: 'Test',
+    remNote: 'Each block can notify you when it starts and 10 min before it ends. Click the bell on a block to choose. Keep this tab open.',
+    data: 'Data', exportBackup: 'Export backup', importBackup: 'Import',
+    prevWeek: 'Previous week', nextWeek: 'Next week',
+    blockOne: 'block', blockMany: 'blocks', planned: '{dur} planned', nothingPlanned: 'nothing planned yet', todayTag: 'today',
+    cardAria: '{name}, {dur}. Press Enter to add to the day.',
+    remBoth: ' · 🔔 start & end', remS: ' · 🔔 start', remE: ' · 🔔 end',
+    editTask: 'Edit task', editNamed: 'Edit {name}', newTaskBtn: '+ New task',
+    evAria: '{name}, {s} to {f}{rem}. Press Enter to edit.', withRem: ', with reminder',
+    bellClick: ' Click to adjust.', bellAria: 'Block reminders',
+    emptyDay: 'Free day. Drag a task from the left into the grid and drop it at the time you want.',
+    storeOk: 'Saved automatically in this browser.',
+    storeBad: 'Saving is unavailable here (preview mode). Open the .html file in your browser to save. Export works as a backup.',
+    notifNone: "This browser doesn't support notifications. Alerts only show up inside the page.",
+    notifOn: 'Notifications on. Alerts for the start and end of blocks.',
+    notifDenied: 'Blocked by the browser. Allow them in the site settings. Meanwhile, alerts show up in the page.',
+    notifOff: 'Not enabled yet. Click enable to get system alerts.',
+    noRoomDay: 'No room on this day. Free up a slot and try again.',
+    addedOn: 'Added on {day}',
+    remWhenStart: 'when it starts', remBeforeEnd: '{n} min before it ends', remNotifies: 'Notifies {list}.', remAnd: ' and ', noRem: 'No reminders.',
+    remOnToast: 'Reminder on. Enable notifications in the left panel to get the system alert.',
+    rmTitle: 'Reminders · {name}', chkStart: 'Notify when it starts', chkEnd: 'Notify {n} min before it ends',
+    shortened: 'shortened', noRoomSlot: 'No room at that time.', movedTo: 'Moved to {day}', noRoomBlock: 'No room on that day for this block.',
+    errConflict: 'Conflicts with "{name}" ({s} – {f}), which starts earlier. Adjust the start time.',
+    errNoFit: "Doesn't fit: after readjusting the blocks below, the last one would go past {t}.",
+    del: 'Delete', confirm: 'Confirm?', cancel: 'Cancel', save: 'Save',
+    errEnd: 'The end must be after the start.', errGrid: 'The grid runs from {a} to {b}.',
+    adjusted: n => `${n} ${n === 1 ? 'block' : 'blocks'} readjusted`,
+    fTitle: 'Title', fStart: 'Start', fEnd: 'End', editBlock: 'Edit block',
+    phName: 'E.g.: Meeting, Training, Review…',
+    fIcon: 'Icon', colorCustom: 'Custom color', colorN: 'Color {c}',
+    taskRemoved: 'Task removed. Blocks already on your schedule stay there.',
+    fName: 'Name', fColor: 'Color', fDur: 'Default duration (minutes)', fRem: 'Reminders (applied when you drag it in)',
+    durNote: 'The duration is just a starting point. Then adjust it by pulling the block edges on the grid.',
+    createTask: 'Create task', editTaskTitle: 'Edit task', newTaskTitle: 'New task',
+    emptyCopy: 'This day is empty. Build the day first, then copy it.',
+    copyN: ' · {n} already',
+    copied: n => `Day copied to ${n} ${n === 1 ? 'day' : 'days'}`,
+    copyNote: 'Copies all blocks of this day (with times and reminders) to the weekdays you tick. Then just adjust what changes.',
+    monFri: 'Mon–Fri', all: 'All', none: 'None',
+    copyWarn: 'Heads up: anything already on the ticked days will be replaced.',
+    copy: 'Copy', copyTitle: 'Copy this day to…',
+    backupExported: 'Backup exported', exportFail: "Couldn't export in this environment.", backupImported: 'Backup imported', invalidFile: 'Invalid file.',
+    permFail: "This environment doesn't allow asking for permission.",
+    testTitle: '🔔 Reminder test', testBody: 'This is how block start and end alerts look.',
+    startsNow: '{icon} {name} starts now', endsIn: '{icon} {name} ends in {n} min', endsAt: 'Ends at {e} ({s} – {f})',
+    close: 'Close'
+  },
+  es: {
+    pageTitle: 'Mi Día',
+    wd: ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'],
+    prevDay: 'Día anterior', prevDayT: 'Día anterior (←)', nextDay: 'Día siguiente', nextDayT: 'Día siguiente (→)',
+    today: 'Hoy', pickDate: 'Elegir fecha',
+    copyDay: 'Copiar día a…', clearDay: 'Limpiar día',
+    timeFmt: 'Formato de hora', zoomBars: 'Zoom de los bloques', zoomOut: 'Hacer los bloques más pequeños', zoomIn: 'Hacer los bloques más grandes', zoomReset: 'Volver al tamaño que cabe en la pantalla',
+    language: 'Idioma',
+    yourTasks: 'Tus tareas',
+    libHint: 'Mantén pulsado y arrastra a la cuadrícula; suelta en la hora que quieras. Si sueltas entre otros bloques, los de abajo se ajustan y se pegan al final del nuevo. O haz clic para colocarla justo después de la última tarea del día.',
+    reminders: 'Recordatorios', enableNotif: 'Activar notificaciones', test: 'Probar',
+    remNote: 'Cada bloque puede avisarte cuando empieza y 10 min antes de terminar. Haz clic en la campanita del bloque para elegir. Mantén esta pestaña abierta.',
+    data: 'Datos', exportBackup: 'Exportar copia', importBackup: 'Importar',
+    prevWeek: 'Semana anterior', nextWeek: 'Semana siguiente',
+    blockOne: 'bloque', blockMany: 'bloques', planned: '{dur} planificadas', nothingPlanned: 'nada planificado aún', todayTag: 'hoy',
+    cardAria: '{name}, {dur}. Pulsa Enter para añadir al día.',
+    remBoth: ' · 🔔 inicio y fin', remS: ' · 🔔 inicio', remE: ' · 🔔 fin',
+    editTask: 'Editar tarea', editNamed: 'Editar {name}', newTaskBtn: '+ Nueva tarea',
+    evAria: '{name}, de {s} a {f}{rem}. Pulsa Enter para editar.', withRem: ', con recordatorio',
+    bellClick: ' Haz clic para ajustar.', bellAria: 'Recordatorios del bloque',
+    emptyDay: 'Día libre. Arrastra una tarea de la izquierda hasta aquí y suéltala en la hora que quieras.',
+    storeOk: 'Guardado automáticamente en este navegador.',
+    storeBad: 'Guardado no disponible aquí (modo vista previa). Abre el archivo .html en el navegador para guardar. Exportar sirve como copia de seguridad.',
+    notifNone: 'Este navegador no admite notificaciones. Los avisos aparecen solo dentro de la página.',
+    notifOn: 'Notificaciones activas. Avisos de inicio y de fin de los bloques.',
+    notifDenied: 'Bloqueadas por el navegador. Habilítalas en los ajustes del sitio. Mientras tanto, el aviso aparece en la página.',
+    notifOff: 'Aún no activadas. Haz clic en activar para recibir la alerta del sistema.',
+    noRoomDay: 'No hay espacio ese día. Libera un horario e inténtalo de nuevo.',
+    addedOn: 'Añadido el {day}',
+    remWhenStart: 'cuando empieza', remBeforeEnd: '{n} min antes de terminar', remNotifies: 'Avisa {list}.', remAnd: ' y ', noRem: 'Sin recordatorios.',
+    remOnToast: 'Recordatorio activado. Activa las notificaciones en el panel de la izquierda para recibir la alerta del sistema.',
+    rmTitle: 'Recordatorios · {name}', chkStart: 'Avisar cuando empiece', chkEnd: 'Avisar {n} min antes de terminar',
+    shortened: 'acortado', noRoomSlot: 'No hay espacio en ese horario.', movedTo: 'Movido al {day}', noRoomBlock: 'No hay espacio ese día para este bloque.',
+    errConflict: 'Choca con "{name}" ({s} – {f}), que empieza antes. Ajusta el inicio.',
+    errNoFit: 'No cabe: al reajustar los bloques de abajo, el último pasaría de las {t}.',
+    del: 'Eliminar', confirm: '¿Confirmar?', cancel: 'Cancelar', save: 'Guardar',
+    errEnd: 'El fin debe ser posterior al inicio.', errGrid: 'La cuadrícula va de las {a} a las {b}.',
+    adjusted: n => `${n} ${n === 1 ? 'bloque reajustado' : 'bloques reajustados'}`,
+    fTitle: 'Título', fStart: 'Inicio', fEnd: 'Fin', editBlock: 'Editar bloque',
+    phName: 'Ej.: Reunión, Formación, Revisión…',
+    fIcon: 'Icono', colorCustom: 'Color personalizado', colorN: 'Color {c}',
+    taskRemoved: 'Tarea eliminada. Los bloques ya colocados en la agenda se mantienen.',
+    fName: 'Nombre', fColor: 'Color', fDur: 'Duración predeterminada (minutos)', fRem: 'Recordatorios (se aplican al arrastrar)',
+    durNote: 'La duración es solo el punto de partida. Luego la ajustas arrastrando los bordes del bloque en la cuadrícula.',
+    createTask: 'Crear tarea', editTaskTitle: 'Editar tarea', newTaskTitle: 'Nueva tarea',
+    emptyCopy: 'Este día está vacío. Arma primero el día y luego cópialo.',
+    copyN: ' · {n} ya',
+    copied: n => `Día copiado a ${n} ${n === 1 ? 'día' : 'días'}`,
+    copyNote: 'Copia todos los bloques de este día (con horarios y recordatorios) a los días de la semana que marques. Después solo ajustas lo que cambie.',
+    monFri: 'Lun–Vie', all: 'Todos', none: 'Ninguno',
+    copyWarn: 'Atención: lo que ya exista en los días marcados será reemplazado.',
+    copy: 'Copiar', copyTitle: 'Copiar este día a…',
+    backupExported: 'Copia exportada', exportFail: 'No se pudo exportar en este entorno.', backupImported: 'Copia importada', invalidFile: 'Archivo no válido.',
+    permFail: 'Este entorno no permite pedir permiso.',
+    testTitle: '🔔 Prueba de recordatorio', testBody: 'Así aparecen los avisos de inicio y de fin de los bloques.',
+    startsNow: '{icon} {name} empieza ahora', endsIn: '{icon} {name} termina en {n} min', endsAt: 'Termina a las {e} ({s} – {f})',
+    close: 'Cerrar'
+  },
+  pt: {
+    pageTitle: 'Meu Dia',
+    wd: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
+    prevDay: 'Dia anterior', prevDayT: 'Dia anterior (←)', nextDay: 'Próximo dia', nextDayT: 'Próximo dia (→)',
+    today: 'Hoje', pickDate: 'Escolher data',
+    copyDay: 'Copiar dia para…', clearDay: 'Limpar dia',
+    timeFmt: 'Formato de hora', zoomBars: 'Zoom das barras', zoomOut: 'Diminuir as barras', zoomIn: 'Aumentar as barras', zoomReset: 'Voltar ao tamanho que cabe na tela',
+    language: 'Idioma',
+    yourTasks: 'Suas tasks',
+    libHint: 'Segure e arraste para a grade, solte no horário que quiser. Se soltar entre outros blocos, os de baixo se ajustam e colam no final do novo. Ou clique para encaixar logo depois da última task do dia.',
+    reminders: 'Lembretes', enableNotif: 'Ativar notificações', test: 'Testar',
+    remNote: 'Cada bloco pode avisar quando começa e 10 min antes de acabar. Clique no sininho do bloco para escolher. Mantenha esta aba aberta.',
+    data: 'Dados', exportBackup: 'Exportar backup', importBackup: 'Importar',
+    prevWeek: 'Semana anterior', nextWeek: 'Próxima semana',
+    blockOne: 'bloco', blockMany: 'blocos', planned: '{dur} planejadas', nothingPlanned: 'nada planejado ainda', todayTag: 'hoje',
+    cardAria: '{name}, {dur}. Enter para adicionar ao dia.',
+    remBoth: ' · 🔔 início e fim', remS: ' · 🔔 início', remE: ' · 🔔 fim',
+    editTask: 'Editar task', editNamed: 'Editar {name}', newTaskBtn: '+ Nova task',
+    evAria: '{name}, {s} a {f}{rem}. Enter para editar.', withRem: ', com lembrete',
+    bellClick: ' Clique para ajustar.', bellAria: 'Lembretes do bloco',
+    emptyDay: 'Dia livre. Arraste uma task da esquerda para cá e solte no horário desejado.',
+    storeOk: 'Salvo automaticamente neste navegador.',
+    storeBad: 'Salvamento indisponível aqui (modo prévia). Abra o arquivo .html no navegador para salvar. Exportar funciona como backup.',
+    notifNone: 'Este navegador não suporta notificações. Os avisos aparecem só dentro da página.',
+    notifOn: 'Notificações ativas. Avisos de início e de fim dos blocos.',
+    notifDenied: 'Bloqueadas pelo navegador. Libere nas configurações do site. Enquanto isso, o aviso aparece na página.',
+    notifOff: 'Ainda não ativadas. Clique em ativar para receber o alerta do sistema.',
+    noRoomDay: 'Sem espaço nesse dia. Libere um horário e tente de novo.',
+    addedOn: 'Adicionado em {day}',
+    remWhenStart: 'quando começa', remBeforeEnd: '{n} min antes de acabar', remNotifies: 'Avisa {list}.', remAnd: ' e ', noRem: 'Sem lembretes.',
+    remOnToast: 'Lembrete ligado. Ative as notificações no painel à esquerda para receber o alerta do sistema.',
+    rmTitle: 'Lembretes · {name}', chkStart: 'Avisar quando começar', chkEnd: 'Avisar {n} min antes de acabar',
+    shortened: 'encurtado', noRoomSlot: 'Sem espaço nesse horário.', movedTo: 'Movido para {day}', noRoomBlock: 'Sem espaço nesse dia para este bloco.',
+    errConflict: 'Conflita com "{name}" ({s} – {f}), que começa antes. Ajuste o início.',
+    errNoFit: 'Não cabe: reajustando os blocos de baixo, o último passaria das {t}.',
+    del: 'Excluir', confirm: 'Confirmar?', cancel: 'Cancelar', save: 'Salvar',
+    errEnd: 'O fim precisa ser depois do início.', errGrid: 'A grade vai das {a} às {b}.',
+    adjusted: n => `${n} ${n === 1 ? 'bloco reajustado' : 'blocos reajustados'}`,
+    fTitle: 'Título', fStart: 'Início', fEnd: 'Fim', editBlock: 'Editar bloco',
+    phName: 'Ex.: Reunião, Treinamento, Revisão…',
+    fIcon: 'Ícone', colorCustom: 'Cor personalizada', colorN: 'Cor {c}',
+    taskRemoved: 'Task removida. Blocos já colocados na agenda continuam lá.',
+    fName: 'Nome', fColor: 'Cor', fDur: 'Duração padrão (minutos)', fRem: 'Lembretes (já vêm assim ao arrastar)',
+    durNote: 'A duração é só o ponto de partida. Depois você ajusta puxando as bordas do bloco na grade.',
+    createTask: 'Criar task', editTaskTitle: 'Editar task', newTaskTitle: 'Nova task',
+    emptyCopy: 'Este dia está vazio. Monte o dia primeiro, depois copie.',
+    copyN: ' · {n} já',
+    copied: n => `Dia copiado para ${n} ${n === 1 ? 'dia' : 'dias'}`,
+    copyNote: 'Copia todos os blocos deste dia (com horários e lembretes) para os dias da semana que você marcar. Depois é só ajustar o que mudar.',
+    monFri: 'Seg–Sex', all: 'Todos', none: 'Nenhum',
+    copyWarn: 'Atenção: o que já existir nos dias marcados será substituído.',
+    copy: 'Copiar', copyTitle: 'Copiar este dia para…',
+    backupExported: 'Backup exportado', exportFail: 'Não foi possível exportar neste ambiente.', backupImported: 'Backup importado', invalidFile: 'Arquivo inválido.',
+    permFail: 'Este ambiente não permite pedir permissão.',
+    testTitle: '🔔 Teste de lembrete', testBody: 'Assim aparecem os avisos de início e de fim dos blocos.',
+    startsNow: '{icon} {name} começa agora', endsIn: '{icon} {name} termina em {n} min', endsAt: 'Termina às {e} ({s} – {f})',
+    close: 'Fechar'
+  }
+};
+const lang = () => (typeof state !== 'undefined' && state && state.settings && I18N[state.settings.lang]) ? state.settings.lang : 'en';
+function say(key, vars) {
+  let v = I18N[lang()][key]; if (v === undefined) v = I18N.en[key]; if (v === undefined) return key;
+  if (typeof v === 'function') return v(vars);
+  if (typeof v !== 'string') return v;
+  return vars ? v.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : '')) : v;
+}
+// "Friday, October 30" / "viernes, 30 de octubre" / "sexta-feira, 30 de outubro"
+const dateFull = d => { const s = d.toLocaleDateString(LOCALE[lang()], { weekday: 'long', day: 'numeric', month: 'long' }); return s.charAt(0).toUpperCase() + s.slice(1); };
+const dayLabel = d => d.toLocaleDateString(LOCALE[lang()], { weekday: 'long', month: 'short', day: 'numeric' });
+
+/* ================= State & storage ================= */
+let storageOK = true;
+function defaultState() {
+  return {
+    templates: [
+      { id: 't1', name: 'Chat+Email',            color: '#F59E0B', icon: '💬', dur: 60,  remindStart: true, remindEnd: true  },
+      { id: 't2', name: 'Case + Voice - Online', color: '#22C55E', icon: '🎧', dur: 60,  remindStart: true, remindEnd: true  },
+      { id: 't3', name: 'Break',                 color: '#38BDF8', icon: '☕', dur: 15,  remindStart: true, remindEnd: false },
+      { id: 't4', name: 'Lunch',                 color: '#6366F1', icon: '🍽️', dur: 60,  remindStart: true, remindEnd: false }
+    ],
+    version: 4,
+    events: {},      // { 'YYYY-MM-DD': [ {id,tid,name,color,icon,start,end,remindStart,remindEnd} ] }
+    fired: {},       // lembretes já disparados
+    settings: { h24: false, lang: 'en' }
+  };
+}
+function load() {
+  try {
+    localStorage.setItem(STORE_KEY + '-test', '1'); localStorage.removeItem(STORE_KEY + '-test');
+    const raw = localStorage.getItem(STORE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { storageOK = false; return null; }
+}
+function normalize(s) {
+  const d = defaultState();
+  s = s && typeof s === 'object' ? s : d;
+  s.templates = Array.isArray(s.templates) ? s.templates : d.templates;
+  s.events = s.events && typeof s.events === 'object' ? s.events : {};
+  s.fired = s.fired && typeof s.fired === 'object' ? s.fired : {};
+  s.settings = Object.assign({ h24: false, zi: 1, lang: 'en' }, s.settings || {});
+  if (!LANGS.includes(s.settings.lang)) s.settings.lang = 'en';
+  if (!Number.isInteger(s.settings.zi) || s.settings.zi < 0 || s.settings.zi >= ZLEVELS.length) s.settings.zi = 1;
+  // a grade agora é 9h–21h: ajusta blocos antigos que ficavam fora dessa faixa
+  Object.keys(s.events).forEach(k => {
+    s.events[k] = (Array.isArray(s.events[k]) ? s.events[k] : [])
+      .map(e => ({ ...e, start: Math.max(e.start, MIN_T), end: Math.min(e.end, MAX_T) }))
+      .filter(e => e.end - e.start >= MIN_DUR);
+  });
+  // v2: tasks pré-definidas passam a ter 1h de duração padrão
+  if (!s.version || s.version < 2) {
+    s.templates.forEach(t => { if (['t1','t2','t3','t4'].includes(t.id)) t.dur = 60; });
+    s.version = 2;
+  }
+  // v3: Break volta a ter 15 min como padrão (só se ainda estiver com o valor anterior de 60)
+  if (s.version < 3) {
+    s.templates.forEach(t => { if (t.id === 't3' && t.dur === 60) t.dur = 15; });
+    s.version = 3;
+  }
+  // v4: dois lembretes por bloco — ao iniciar e 10 min antes de acabar (esse só em Chat+Email e Case + Voice por padrão)
+  if (s.version < 4) {
+    s.templates.forEach(t => { t.remindStart = true; t.remindEnd = ['t1', 't2'].includes(t.id); delete t.remind; });
+    Object.keys(s.events).forEach(k => s.events[k].forEach(e => {
+      const t = s.templates.find(x => x.id === e.tid);
+      e.remindStart = true; e.remindEnd = t ? !!t.remindEnd : false; delete e.remind;
+    }));
+    s.version = 4;
+  }
+  // limpa avisos antigos (> 3 dias)
+  const cutoff = keyOf(addDays(new Date(), -3));
+  Object.keys(s.fired).forEach(k => { if (k.slice(0,10) < cutoff) delete s.fired[k]; });
+  return s;
+}
+let state = normalize(load());
+document.documentElement.style.setProperty('--hour', HOUR_H + 'px');
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); storageOK = true; } catch (e) { storageOK = false; }
+  renderStatus();
+}
+
+let cur = new Date(); cur.setHours(0,0,0,0);
+const curKey = () => keyOf(cur);
+const dayEvents = k => (state.events[k] = state.events[k] || []);
+const tpl = id => state.templates.find(t => t.id === id);
+
+/* ================= Formatting ================= */
+function fmt(min) {
+  const h = Math.floor(min/60) % 24, m = min % 60;
+  if (state.settings.h24) return `${pad(h)}:${pad(m)}`;
+  const ap = h >= 12 ? 'PM' : 'AM'; const hh = h % 12 === 0 ? 12 : h % 12;
+  return `${hh}:${pad(m)} ${ap}`;
+}
+function fmtHour(h) {
+  if (state.settings.h24) return `${pad(h % 24)}:00`;
+  h = h % 24;
+  return `${h % 12 === 0 ? 12 : h % 12} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+function fmtDur(m) {
+  const h = Math.floor(m/60), r = m % 60;
+  if (!h) return `${r} min`;
+  return r ? `${h}h${pad(r)}` : `${h}h`;
+}
+const toInput = m => `${pad(Math.floor(m/60) % 24)}:${pad(m%60)}`;
+const fromInput = v => { const [h,m] = v.split(':').map(Number); return h*60 + m; };
+
+/* ================= Toasts ================= */
+function toast(msg, opts = {}) {
+  const t = el('div', { class: 'toast' }, msg);
+  document.getElementById('toasts').append(t);
+  setTimeout(() => t.remove(), opts.ms || 3200);
+}
+function reminderToast(title, body, color) {
+  const t = el('div', { class: 'toast rem', style: `--c:${color}` },
+    el('div', {}, el('b', {}, title), el('span', {}, body)),
+    el('button', { class: 'x', 'aria-label': say('close'), onclick: () => t.remove() }, '×'));
+  document.getElementById('toasts').append(t);
+}
+
+/* ================= Modal ================= */
+let modalEl = null;
+function closeModal() { if (modalEl) { modalEl.remove(); modalEl = null; } }
+function openModal(title, form) {
+  closeModal();
+  modalEl = el('div', { class: 'overlay', onmousedown: e => { if (e.target === modalEl) closeModal(); } },
+    el('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': title }, el('h2', {}, title), form));
+  document.body.append(modalEl);
+  const f = modalEl.querySelector('input:not([type=checkbox]):not([type=color])'); if (f) { f.focus(); if (f.select && f.type === 'text') f.select(); }
+}
+function twoStep(btn, labelKey, fn) {
+  let t;
+  btn.addEventListener('click', e => {
+    e.preventDefault();
+    if (btn.classList.contains('armed')) { clearTimeout(t); btn.classList.remove('armed'); fn(); return; }
+    btn.classList.add('armed'); btn.textContent = say('confirm');
+    t = setTimeout(() => { btn.classList.remove('armed'); btn.textContent = say(labelKey); }, 3000);
+  });
+}
+
+/* ================= Rendering ================= */
+const track = $('#track'), scrollEl = $('#scrollEl');
+const guide = el('div', { class: 'guide' }), bubble = el('div', { class: 'tbubble' });
+track.append(guide);
+function showGuide(min, color) {
+  const y = (min - MIN_T) * PX_MIN + 'px';
+  guide.style.top = y; guide.style.setProperty('--c', color || '#1E2230'); guide.style.display = 'block';
+  bubble.style.top = y; bubble.textContent = fmt(min); bubble.style.display = 'block';
+}
+function hideGuide() { guide.style.display = 'none'; bubble.style.display = 'none'; }
+
+function buildAxis() {
+  const g = $('#gutter'); g.innerHTML = '';
+  track.style.height = (MAX_T - MIN_T) * PX_MIN + 'px';
+  g.style.height = (MAX_T - MIN_T) * PX_MIN + 'px';
+  for (let h = START_H; h <= END_H; h++) {
+    const s = el('span', { style: `top:${(h - START_H) * HOUR_H}px` }, fmtHour(h));
+    g.append(s);
+  }
+  g.append(bubble);
+}
+
+function renderHeader() {
+  $('#dateTitle').textContent = dateFull(cur);
+  const evs = dayEvents(curKey());
+  const total = evs.reduce((a, e) => a + (e.end - e.start), 0);
+  const isToday = curKey() === keyOf(new Date());
+  $('#dateSub').textContent = `${cur.getFullYear()} · ${evs.length ? `${evs.length} ${say(evs.length === 1 ? 'blockOne' : 'blockMany')} · ${say('planned', { dur: fmtDur(total) })}` : say('nothingPlanned')}${isToday ? ' · ' + say('todayTag') : ''}`;
+  $('#datePick').value = curKey();
+  $('#f12').classList.toggle('on', !state.settings.h24);
+  $('#f24').classList.toggle('on', state.settings.h24);
+}
+
+function renderChips() {
+  const box = $('#chips'); box.innerHTML = '';
+  const mon = mondayOf(cur), todayK = keyOf(new Date());
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(mon, i), k = keyOf(d), evs = state.events[k] || [];
+    const dots = el('div', { class: 'dots' });
+    [...evs].sort((a,b) => a.start - b.start).slice(0, 6).forEach(e => dots.append(el('i', { style: `background:${e.color}` })));
+    box.append(el('button', {
+      class: 'chip' + (k === curKey() ? ' sel' : '') + (k === todayK ? ' istoday' : ''),
+      'data-date': k, onclick: () => setDate(d), title: dateFull(d)
+    }, el('span', { class: 'wd' }, say('wd')[d.getDay()]), el('span', { class: 'dn' }, d.getDate()), dots));
+  }
+}
+
+function renderLibrary() {
+  const lib = $('#lib'); lib.innerHTML = '';
+  state.templates.forEach(t => {
+    const card = el('div', {
+      class: 'tcard', tabindex: '0', 'data-id': t.id,
+      style: `--c:${t.color};color:${textOn(t.color)}`, 'aria-label': say('cardAria', { name: t.name, dur: fmtDur(t.dur) })
+    },
+      el('span', { class: 'ic' }, t.icon || '•'),
+      el('span', { class: 'meta' }, el('b', {}, t.name), el('small', {}, `${fmtDur(t.dur)}${t.remindStart && t.remindEnd ? say('remBoth') : t.remindStart ? say('remS') : t.remindEnd ? say('remE') : ''}`)),
+      el('button', { class: 'edit', title: say('editTask'), 'aria-label': say('editNamed', { name: t.name }), html: PENCIL,
+        onpointerdown: e => e.stopPropagation(), onclick: e => { e.stopPropagation(); openTemplateModal(t.id); } })
+    );
+    card.addEventListener('pointerdown', e => startLibDrag(e, t.id));
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target === card) appendToDay(curKey(), t.id); });
+    lib.append(card);
+  });
+  lib.append(el('button', { class: 'add-task', onclick: () => openTemplateModal() }, say('newTaskBtn')));
+}
+
+function layout(evs) {
+  const s = [...evs].sort((a, b) => a.start - b.start || b.end - a.end);
+  const res = {}; let cluster = [], cols = [], cEnd = -1;
+  const flush = () => { cluster.forEach(e => res[e.id].cols = cols.length); cluster = []; cols = []; };
+  s.forEach(e => {
+    if (cluster.length && e.start >= cEnd) { flush(); cEnd = -1; }
+    let c = cols.findIndex(end => end <= e.start);
+    if (c < 0) { c = cols.length; cols.push(0); }
+    cols[c] = e.end; res[e.id] = { col: c, cols: 1 }; cluster.push(e); cEnd = Math.max(cEnd, e.end);
+  });
+  flush(); return res;
+}
+
+function placeEv(node, e, s = e.start, f = e.end) {
+  const lay = node._lay || { col: 0, cols: 1 };
+  const h = (f - s) * PX_MIN - 2;
+  node.style.top = (s - MIN_T) * PX_MIN + 1 + 'px';
+  node.style.height = h + 'px';
+  node.style.left = `calc(${lay.col} * 100% / ${lay.cols} + 4px)`;
+  node.style.width = `calc(100% / ${lay.cols} - 8px)`;
+  node.classList.toggle('compact', h < 44);
+  node.style.setProperty('--hh', clamp(h * 0.25, 3, 8) + 'px');   // faixa da bordinha (redimensionar); o resto do bloco move
+  node.querySelector('.tm').textContent = `${fmt(s)} – ${fmt(f)}${h >= 44 ? ' · ' + fmtDur(f - s) : ''}`;
+  node.setAttribute('aria-label', say('evAria', { name: e.name, s: fmt(s), f: fmt(f), rem: (e.remindStart || e.remindEnd) ? say('withRem') : '' }));
+}
+
+function buildEv(e, lay) {
+  const nRem = (e.remindStart ? 1 : 0) + (e.remindEnd ? 1 : 0);
+  const bell = el('button', { class: 'bell' + (nRem ? ' on' : ''), html: BELL + (nRem ? `<b class="bn">${nRem}</b>` : ''),
+    title: remSummary(e) + say('bellClick'), 'aria-haspopup': 'dialog', 'aria-label': say('bellAria'),
+    onpointerdown: ev => ev.stopPropagation(),
+    onclick: ev => { ev.stopPropagation(); openRMenu(bell, e.id); } });
+  const node = el('div', { class: 'ev', 'data-id': e.id, tabindex: '0', style: `--c:${e.color};color:${textOn(e.color)}` },
+    el('div', { class: 'h top' }),
+    el('div', { class: 'l1' }, el('span', { class: 'ic' }, e.icon || ''), el('span', { class: 'nm' }, e.name), el('span', { class: 'tm' }), bell),
+    el('div', { class: 'h bottom' }));
+  node._lay = lay;
+  node.addEventListener('keydown', k => { if (k.key === 'Enter' && k.target === node) openEditEvent(e.id); });
+  placeEv(node, e);
+  return node;
+}
+
+function renderGrid() {
+  track.querySelectorAll('.ev,.empty').forEach(n => n.remove());
+  const evs = dayEvents(curKey());
+  const lay = layout(evs);
+  if (!evs.length) track.append(el('div', { class: 'empty' }, el('div', {}, say('emptyDay'))));
+  evs.forEach(e => track.append(buildEv(e, lay[e.id])));
+  updateNow();
+}
+
+function updateNow() {
+  let n = track.querySelector('.now');
+  const isToday = curKey() === keyOf(new Date());
+  if (!isToday) { if (n) n.remove(); return; }
+  const now = new Date(), m = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+  if (m < MIN_T || m > MAX_T) { if (n) n.remove(); return; }
+  if (!n) { n = el('div', { class: 'now' }); track.append(n); }
+  n.style.top = (m - MIN_T) * PX_MIN + 'px';
+}
+
+function renderAll() { renderHeader(); renderChips(); renderLibrary(); renderGrid(); renderStatus(); }
+
+function renderStatus() {
+  const s = $('#storeStatus');
+  s.innerHTML = storageOK
+    ? '<span class="dot ok"></span>' + say('storeOk')
+    : '<span class="dot warn"></span>' + say('storeBad');
+  const n = $('#notifStatus');
+  let html;
+  if (!('Notification' in window)) html = '<span class="dot bad"></span>' + say('notifNone');
+  else if (Notification.permission === 'granted') html = '<span class="dot ok"></span>' + say('notifOn');
+  else if (Notification.permission === 'denied') html = '<span class="dot bad"></span>' + say('notifDenied');
+  else html = '<span class="dot warn"></span>' + say('notifOff');
+  n.innerHTML = html;
+  const b = $('#notifBtn');
+  b.style.display = ('Notification' in window && Notification.permission === 'default') ? '' : 'none';
+}
+
+/* ================= Navigation ================= */
+function setDate(d) { cur = new Date(d); cur.setHours(0,0,0,0); renderHeader(); renderChips(); renderGrid(); }
+$('#prevDay').onclick = () => setDate(addDays(cur, -1));
+$('#nextDay').onclick = () => setDate(addDays(cur, 1));
+$('#prevWeek').onclick = () => setDate(addDays(cur, -7));
+$('#nextWeek').onclick = () => setDate(addDays(cur, 7));
+$('#goToday').onclick = () => { setDate(new Date()); scrollToNow(); };
+$('#datePick').onchange = e => { if (e.target.value) setDate(parseKey(e.target.value)); };
+$('#f12').onclick = () => { state.settings.h24 = false; save(); buildAxis(); renderAll(); };
+$('#f24').onclick = () => { state.settings.h24 = true; save(); buildAxis(); renderAll(); };
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeRMenu(); }
+  if (modalEl || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+  if (e.key === 'ArrowLeft') setDate(addDays(cur, -1));
+  if (e.key === 'ArrowRight') setDate(addDays(cur, 1));
+});
+function scrollToNow() {
+  const n = new Date(), nm = n.getHours()*60 + n.getMinutes();
+  let m = MIN_T;
+  if (curKey() === keyOf(n) && nm >= MIN_T && nm <= MAX_T) m = nm - (scrollEl.clientHeight / 3) / PX_MIN;
+  scrollEl.scrollTop = Math.max(0, (m - MIN_T) * PX_MIN);
+}
+// A grade 9h–21h sempre cabe inteira na área visível: a altura de cada hora é calculada a partir do espaço disponível.
+function setHourHeight(h) {
+  HOUR_H = h; PX_MIN = h / 60;
+  document.documentElement.style.setProperty('--hour', h + 'px');
+  buildAxis(); renderGrid();
+}
+function sizePanel() {
+  const gp = document.querySelector('.gridpanel');
+  if (window.matchMedia('(max-width:860px)').matches) { gp.style.height = ''; gp.style.flex = ''; return; }
+  const top = gp.getBoundingClientRect().top + window.scrollY;
+  gp.style.flex = 'none';
+  gp.style.height = Math.max(300, Math.floor(document.documentElement.clientHeight - top - 16)) + 'px';
+}
+function fitGrid() {
+  const base = clamp(Math.floor((scrollEl.clientHeight - GRID_PAD) / (END_H - START_H)), MIN_HOUR_H, MAX_HOUR_H);
+  const h = clamp(Math.round(base * ZLEVELS[state.settings.zi]), 24, 300);
+  if (h !== HOUR_H) setHourHeight(h);
+}
+function updateZoomUI() {
+  const i = state.settings.zi;
+  $('#zOut').disabled = i <= 0; $('#zIn').disabled = i >= ZLEVELS.length - 1;
+  $('#zLbl').textContent = Math.round(ZLEVELS[i] * 100) + '%';
+}
+function setZoomIdx(i) {
+  i = clamp(i, 0, ZLEVELS.length - 1);
+  if (i === state.settings.zi) return;
+  const mid = MIN_T + (scrollEl.scrollTop + scrollEl.clientHeight / 2) / PX_MIN;   // mantém o horário do centro no lugar
+  state.settings.zi = i; save(); fitGrid(); updateZoomUI();
+  scrollEl.scrollTop = Math.max(0, (mid - MIN_T) * PX_MIN - scrollEl.clientHeight / 2);
+}
+$('#zOut').onclick = () => setZoomIdx(state.settings.zi - 1);
+$('#zIn').onclick = () => setZoomIdx(state.settings.zi + 1);
+$('#zLbl').onclick = () => setZoomIdx(1);
+let relayoutRaf = 0;
+function relayout() {
+  if (relayoutRaf) return;
+  relayoutRaf = requestAnimationFrame(() => { relayoutRaf = 0; sizePanel(); fitGrid(); });
+}
+window.addEventListener('resize', relayout);
+window.addEventListener('load', relayout);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+if (window.ResizeObserver) {
+  const ro = new ResizeObserver(relayout);
+  ro.observe(document.querySelector('header.top')); ro.observe(document.querySelector('.weekbar'));
+}
+
+/* ================= Event operations ================= */
+const findEv = (key, id) => dayEvents(key).find(e => e.id === id);
+const otherEvents = (key, ignoreId) => dayEvents(key).filter(e => e.id !== ignoreId);
+
+// intervalos livres entre os blocos, dentro da faixa visível da grade
+function freeIntervals(list) {
+  const s = [...list].sort((a, b) => a.start - b.start), res = []; let c = MIN_T;
+  s.forEach(e => { if (e.start > c) res.push([c, Math.min(e.start, MAX_T)]); c = Math.max(c, e.end); });
+  if (c < MAX_T) res.push([c, MAX_T]);
+  return res;
+}
+
+// ajusta uma borda: ímã nos vizinhos, depois nos quartos de hora, senão passos de 5 min
+function snapEdge(raw, magnets) {
+  let best = null, bd = Infinity;
+  magnets.forEach(m => { const d = Math.abs(m - raw); if (d <= magnetMin() && d < bd) { bd = d; best = m; } });
+  if (best != null) return best;
+  const q = Math.round(raw / QUARTER) * QUARTER;
+  if (Math.abs(q - raw) <= quarterMin()) return q;
+  return Math.round(raw / SNAP) * SNAP;
+}
+
+// Onde um bloco de duração `dur`, com o topo em `raw` (minutos), realmente fica.
+// Nunca sobrepõe outro bloco: gruda nas bordas vizinhas; se cair em cima de outro, vai para o espaço livre mais próximo.
+function placeBlock(key, raw, dur, ignoreId, shrink) {
+  const list = otherEvents(key, ignoreId);
+  const lo = MIN_T, hi = MAX_T - dur;
+  if (hi < lo) return null;
+  const want = clamp(raw, lo, hi);
+  const fits = s => s >= lo && s <= hi && !list.some(e => s < e.end && s + dur > e.start);
+  let best = null, bd = Infinity;
+  const mags = [hi]; list.forEach(e => mags.push(e.end, e.start - dur));
+  mags.forEach(v => { const d = Math.abs(v - want); if (d <= magnetMin() && d < bd && fits(v)) { bd = d; best = v; } });
+  if (best == null) { const q = Math.round(want / QUARTER) * QUARTER; if (Math.abs(q - want) <= quarterMin() && fits(q)) best = q; }
+  if (best == null) { const s = Math.round(want / SNAP) * SNAP; if (fits(s)) best = s; }
+  if (best != null) return { start: best, end: best + dur };
+  // ocupado: procura o espaço livre mais próximo que comporte o bloco inteiro
+  const free = freeIntervals(list);
+  let cand = null, cd = Infinity;
+  free.forEach(([a, b]) => {
+    if (b - a >= dur) {
+      const s = clamp(Math.round(want / SNAP) * SNAP, a, b - dur), d = Math.abs(s - want);
+      if (d < cd) { cd = d; cand = { start: s, end: s + dur }; }
+    }
+  });
+  if (cand || !shrink) return cand;
+  // nenhum vão comporta a duração toda: encurta para caber no vão mais próximo
+  free.forEach(([a, b]) => {
+    if (b - a >= MIN_DUR) {
+      const len = Math.min(dur, b - a), s = clamp(Math.round(want / SNAP) * SNAP, a, b - len), d = Math.abs(s - want);
+      if (d < cd) { cd = d; cand = { start: s, end: s + len }; }
+    }
+  });
+  return cand;
+}
+
+// Inserção "com reação": o bloco entra onde foi solto e os blocos de baixo que ficariam sobrepostos
+// são empurrados, colando no final do bloco novo (em cascata). Retorna { start, end, moves }.
+function planInsert(key, raw, dur, ignoreId, shrink) {
+  const fallback = () => { const r = placeBlock(key, raw, dur, ignoreId, shrink); return r ? { ...r, moves: {} } : null; };
+  const list = otherEvents(key, ignoreId).sort((a, b) => a.start - b.start);
+  const lo = MIN_T, hi = MAX_T - dur;
+  if (hi < lo) return null;
+  const want = clamp(raw, lo, hi);
+  // 1) ímãs: bordas dos vizinhos, depois quartos de hora, senão passos de 5 min
+  let s = null, bd = Infinity;
+  const mags = [hi]; list.forEach(e => mags.push(e.end, e.start - dur));
+  mags.forEach(v => { const d = Math.abs(v - want); if (v >= lo && v <= hi && d <= magnetMin() && d < bd) { bd = d; s = v; } });
+  if (s == null) { const q = Math.round(want / QUARTER) * QUARTER; s = Math.abs(q - want) <= quarterMin() ? q : Math.round(want / SNAP) * SNAP; }
+  s = clamp(s, lo, hi);
+  // 2) topo caiu dentro de um bloco: entra antes dele (metade de cima) ou depois (metade de baixo)
+  const inside = list.find(e => s > e.start && s < e.end);
+  if (inside) s = s >= (inside.start + inside.end) / 2 ? inside.end : inside.start;
+  if (s > hi) return fallback();
+  // 3) cascata: quem ficaria sobreposto cola no fim do bloco anterior
+  const moves = {}; let cursor = s + dur;
+  for (const e of list) {
+    if (e.start < s) continue;
+    const len = e.end - e.start;
+    if (e.start < cursor) { moves[e.id] = { start: cursor, end: cursor + len }; cursor += len; }
+    else cursor = Math.max(cursor, e.end);
+  }
+  if (cursor > MAX_T) return fallback();      // não cabe empurrando: usa o espaço livre mais próximo
+  return { start: s, end: s + dur, moves };
+}
+// mostra (sem salvar) os blocos que reagem; sem `moves`, devolve tudo para o lugar
+function showMoves(moves, skipId) {
+  const key = curKey();
+  track.querySelectorAll('.ev').forEach(n => {
+    if (n.dataset.id === skipId) return;
+    const e = findEv(key, n.dataset.id); if (!e) return;
+    const m = moves && moves[e.id];
+    placeEv(n, e, m ? m.start : e.start, m ? m.end : e.end);
+    n.classList.toggle('pushed', !!m);
+  });
+}
+function applyMoves(key, moves) {
+  dayEvents(key).forEach(e => { const m = moves && moves[e.id]; if (m) { e.start = m.start; e.end = m.end; } });
+}
+
+function addEventAt(key, tid, start, end) {
+  const t = tpl(tid); if (!t) return;
+  const id = uid();
+  dayEvents(key).push({ id, tid, name: t.name, color: t.color, icon: t.icon, start, end, remindStart: !!t.remindStart, remindEnd: !!t.remindEnd });
+  silenceDay(key);
+  save(); renderHeader(); renderChips();
+  if (key === curKey()) {
+    renderGrid();
+    const n = track.querySelector(`.ev[data-id="${id}"]`);
+    if (n) { n.classList.add('pop'); setTimeout(() => n.classList.remove('pop'), 450); }
+  }
+}
+function appendToDay(key, tid) {
+  const t = tpl(tid); if (!t) return;
+  const evs = dayEvents(key), dur = clamp(t.dur, MIN_DUR, MAX_T - MIN_T);
+  const last = evs.length ? Math.max(...evs.map(e => e.end)) : 9*60;
+  const res = placeBlock(key, last, dur, null, true);
+  if (!res) { toast(say('noRoomDay')); return; }
+  addEventAt(key, tid, res.start, res.end);
+  if (key !== curKey()) toast(say('addedOn', { day: dayLabel(parseKey(key)) }));
+}
+function remSummary(e) {
+  const p = [];
+  if (e.remindStart) p.push(say('remWhenStart'));
+  if (e.remindEnd) p.push(say('remBeforeEnd', { n: REMIND_BEFORE }));
+  return p.length ? say('remNotifies', { list: p.join(say('remAnd')) }) : say('noRem');
+}
+function setRemind(id, field, val) {
+  const e = findEv(curKey(), id); if (!e) return;
+  e[field] = val;
+  if (val) delete state.fired[`${curKey()}|${e.id}|${field === 'remindStart' ? 's|' + e.start : 'e|' + e.end}`];
+  save(); renderGrid();
+  if (val && 'Notification' in window && Notification.permission === 'default')
+    toast(say('remOnToast'), { ms: 5000 });
+}
+// menu do sininho: escolher os avisos de um bloco
+let rmenuEl = null, rmenuFor = null;
+function closeRMenu() { if (rmenuEl) { rmenuEl.remove(); rmenuEl = null; rmenuFor = null; } }
+function openRMenu(anchor, id) {
+  if (rmenuEl && rmenuFor === id) { closeRMenu(); return; }
+  closeRMenu();
+  const e = findEv(curKey(), id); if (!e) return;
+  const row = (label, field) => {
+    const cb = el('input', { type: 'checkbox' }); cb.checked = !!e[field];
+    cb.addEventListener('change', () => setRemind(id, field, cb.checked));
+    return el('label', { class: 'check' }, cb, label);
+  };
+  rmenuEl = el('div', { class: 'rmenu', role: 'dialog', 'aria-label': say('bellAria') },
+    el('div', { class: 'rm-t' }, say('rmTitle', { name: e.name })),
+    row(say('chkStart'), 'remindStart'),
+    row(say('chkEnd', { n: REMIND_BEFORE }), 'remindEnd'));
+  rmenuFor = id;
+  document.body.append(rmenuEl);
+  const r = anchor.getBoundingClientRect(), w = rmenuEl.offsetWidth, h = rmenuEl.offsetHeight;
+  rmenuEl.style.left = clamp(r.right - w, 8, window.innerWidth - w - 8) + 'px';
+  rmenuEl.style.top = (r.bottom + 6 + h > window.innerHeight ? Math.max(8, r.top - h - 6) : r.bottom + 6) + 'px';
+}
+document.addEventListener('pointerdown', ev => {
+  if (rmenuEl && !rmenuEl.contains(ev.target) && !(ev.target.closest && ev.target.closest('.bell'))) closeRMenu();
+}, true);
+scrollEl.addEventListener('scroll', closeRMenu, { passive: true });
+
+/* ================= Drag: autoscroll ================= */
+const auto = { x: null, y: null, raf: 0, cb: null, acc: 0 };
+function autoStart(cb) {
+  auto.cb = cb; if (auto.raf) return;
+  const tick = () => {
+    if (auto.y == null) { auto.raf = 0; return; }
+    const r = scrollEl.getBoundingClientRect(), z = 44;
+    if (auto.x >= r.left - 10 && auto.x <= r.right + 10) {
+      let v = 0;
+      if (auto.y < r.top + z) v = -(r.top + z - auto.y) / z * 10;
+      else if (auto.y > r.bottom - z) v = (auto.y - (r.bottom - z)) / z * 10;
+      v = clamp(v, -14, 14);
+      if (v) { auto.acc += v; const st = Math.trunc(auto.acc); if (st) { auto.acc -= st; scrollEl.scrollTop += st; } }
+    }
+    auto.raf = requestAnimationFrame(tick);
+  };
+  auto.raf = requestAnimationFrame(tick);
+}
+function autoStop() { auto.x = auto.y = null; auto.cb = null; auto.acc = 0; }
+// qualquer rolagem (autoscroll ou roda do mouse) durante o arraste recalcula a posição
+scrollEl.addEventListener('scroll', () => { if (auto.cb) auto.cb(); }, { passive: true });
+
+function chipAt(x, y) { const n = document.elementFromPoint(x, y); return n && n.closest ? n.closest('.chip') : null; }
+function markChip(c) { document.querySelectorAll('.chip.drop').forEach(n => { if (n !== c) n.classList.remove('drop'); }); if (c) c.classList.add('drop'); }
+
+/* ================= Drag: biblioteca -> grade ================= */
+const GRAB_Y = 12;   // o topo do bloco fica um pouco acima da ponta do cursor
+function rawMinAt(x, y) {
+  const sr = scrollEl.getBoundingClientRect();
+  if (x < sr.left || x > sr.right || y < sr.top || y > sr.bottom) return null;
+  return MIN_T + (y - GRAB_Y - track.getBoundingClientRect().top) / PX_MIN;
+}
+function startLibDrag(pe, tid) {
+  if (pe.pointerType === 'mouse' && pe.button !== 0) return;
+  const t = tpl(tid), card = $(`.tcard[data-id="${tid}"]`); if (!t || !card) return;
+  const cr = card.getBoundingClientRect(), grab = { x: pe.clientX - cr.left, y: pe.clientY - cr.top };
+  const sx = pe.clientX, sy = pe.clientY, dur = clamp(t.dur, MIN_DUR, MAX_T - MIN_T);
+  let dragging = false, ghost = null, tm = null, prev = null, last = pe, res = null, raf = 0, inBlock = false, rot = 0, lastLabel = null;
+  const pos = { x: cr.left, y: cr.top };
+  const dropPrev = () => { if (prev) { prev.remove(); prev = null; } };
+
+  // o "objeto" que você segura: vira um bloco do tamanho real quando entra na grade
+  const setMode = (block, label, h) => {
+    if (block !== inBlock) {
+      inBlock = block; ghost.classList.toggle('inblock', block);
+      if (block) ghost.style.width = track.getBoundingClientRect().width - 8 + 'px';
+      else { ghost.style.width = cr.width + 'px'; ghost.style.height = cr.height + 'px'; }
+    }
+    if (block) ghost.style.height = h + 'px';
+    if (label !== lastLabel) { tm.textContent = label; lastLabel = label; }
+  };
+  const update = () => {
+    const raw = rawMinAt(last.clientX, last.clientY); res = null;
+    if (raw != null) res = planInsert(curKey(), raw, dur, null, true);
+    if (!res) { dropPrev(); hideGuide(); showMoves(null); setMode(false, fmtDur(dur)); return false; }
+    showMoves(res.moves);
+    const stuck = otherEvents(curKey(), null).some(e => e.end === res.start || e.start === res.end);
+    if (!prev) { prev = el('div', { class: 'preview', style: `--c:${t.color}` }); track.append(prev); }
+    prev.classList.toggle('stuck', stuck);
+    prev.style.top = (res.start - MIN_T) * PX_MIN + 1 + 'px';
+    prev.style.height = (res.end - res.start) * PX_MIN - 2 + 'px';
+    prev.textContent = `${fmt(res.start)} – ${fmt(res.end)}`;
+    showGuide(res.start, t.color);
+    setMode(true, `${fmt(res.start)} – ${fmt(res.end)}${res.end - res.start < dur ? ' · ' + say('shortened') : ''}`, (res.end - res.start) * PX_MIN - 2);
+    return true;
+  };
+  // movimento com "inércia": o bloco segue o cursor com atraso suave e inclina conforme a velocidade
+  const loop = () => {
+    if (!ghost) return;
+    const tr = track.getBoundingClientRect();
+    const tx = inBlock ? tr.left + 4 : last.clientX - grab.x;
+    const ty = inBlock ? last.clientY - GRAB_Y : last.clientY - grab.y;
+    const dx = tx - pos.x;
+    pos.x += dx * 0.34; pos.y += (ty - pos.y) * 0.34;
+    rot += ((inBlock ? 0 : clamp(dx * 0.18, -9, 9)) - rot) * 0.25;
+    ghost.style.transform = `translate3d(${pos.x.toFixed(1)}px,${pos.y.toFixed(1)}px,0) rotate(${rot.toFixed(2)}deg) scale(${inBlock ? 1 : 1.04})`;
+    raf = requestAnimationFrame(loop);
+  };
+  const detach = () => {
+    document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', cancel);
+    autoStop(); markChip(null); hideGuide(); document.body.classList.remove('is-dragging');
+  };
+  const cleanup = () => { cancelAnimationFrame(raf); if (ghost) ghost.remove(); dropPrev(); showMoves(null); card.classList.remove('lifted'); };
+  const fly = (x, y, o, done) => {      // animação de soltar: o bloco "cai" no lugar
+    cancelAnimationFrame(raf);
+    ghost.classList.add('landing');
+    if (o.w != null) ghost.style.width = o.w + 'px';
+    if (o.h != null) ghost.style.height = o.h + 'px';
+    ghost.style.opacity = o.opacity != null ? String(o.opacity) : '1';
+    ghost.style.transform = `translate3d(${x}px,${y}px,0) rotate(0deg) scale(${o.scale || 1})`;
+    setTimeout(() => { cleanup(); if (done) done(); }, 210);
+  };
+  const move = e => {
+    last = e;
+    if (!dragging && Math.hypot(e.clientX - sx, e.clientY - sy) > 5) {
+      dragging = true;
+      ghost = el('div', { class: 'dg', style: `--c:${t.color};color:${textOn(t.color)};width:${cr.width}px;height:${cr.height}px;transform:translate3d(${pos.x}px,${pos.y}px,0)` },
+        el('div', { class: 'l1' }, el('span', { class: 'ic' }, t.icon || ''), el('b', {}, t.name)),
+        tm = el('small', {}, fmtDur(dur)));
+      lastLabel = fmtDur(dur);
+      document.body.append(ghost); card.classList.add('lifted'); document.body.classList.add('is-dragging');
+      autoStart(update); raf = requestAnimationFrame(loop);
+    }
+    if (!dragging) return;
+    e.preventDefault();
+    auto.x = e.clientX; auto.y = e.clientY;
+    update(); markChip(chipAt(e.clientX, e.clientY));
+  };
+  const up = e => {
+    last = e;
+    const was = dragging; if (was) update();
+    const final = res, chip = was ? chipAt(e.clientX, e.clientY) : null, overGrid = was && rawMinAt(e.clientX, e.clientY) != null;
+    detach();
+    if (!was) { appendToDay(curKey(), tid); return; }
+    if (chip) {
+      const r = chip.getBoundingClientRect();
+      fly(r.left + r.width / 2 - ghost.offsetWidth / 2, r.top + r.height / 2 - ghost.offsetHeight / 2, { scale: 0.2, opacity: 0 });
+      appendToDay(chip.dataset.date, tid); return;
+    }
+    if (final) {
+      const tr = track.getBoundingClientRect();
+      fly(tr.left + 4, tr.top + (final.start - MIN_T) * PX_MIN + 1, { w: tr.width - 8, h: (final.end - final.start) * PX_MIN - 2 },
+        () => { applyMoves(curKey(), final.moves); addEventAt(curKey(), tid, final.start, final.end); });
+      return;
+    }
+    const r = card.getBoundingClientRect();          // sem lugar: volta para a lista
+    fly(r.left, r.top, { w: cr.width, h: cr.height, opacity: 0 });
+    if (overGrid) toast(say('noRoomSlot'));
+  };
+  const cancel = () => { detach(); if (dragging) { const r = card.getBoundingClientRect(); fly(r.left, r.top, { w: cr.width, h: cr.height, opacity: 0 }); } };
+  document.addEventListener('pointermove', move, { passive: false });
+  document.addEventListener('pointerup', up);
+  document.addEventListener('pointercancel', cancel);
+}
+
+/* ================= Drag: mover / redimensionar blocos ================= */
+track.addEventListener('pointerdown', pe => {
+  const node = pe.target.closest('.ev'); if (!node) return;
+  if (pe.target.closest('.bell')) return;
+  if (pe.pointerType === 'mouse' && pe.button !== 0) return;
+  pe.preventDefault();
+  startEvDrag(pe, node, zoneOf(node, pe.clientY, pe.pointerType));
+});
+// zona do cursor dentro do bloco: bordinha de cima / bordinha de baixo = redimensionar; todo o resto = mover
+function zoneOf(node, y, ptype) {
+  const r = node.getBoundingClientRect();
+  const edge = clamp(r.height * 0.25, 3, ptype === 'touch' ? 14 : 8);
+  if (y - r.top <= edge) return 'top';
+  if (r.bottom - y <= edge) return 'bottom';
+  return 'move';
+}
+let hoverNode = null;
+const busy = () => document.body.classList.contains('is-dragging') || document.body.classList.contains('is-resizing');
+track.addEventListener('pointermove', pe => {
+  if (busy()) return;
+  const node = pe.target.closest ? pe.target.closest('.ev') : null;
+  if (hoverNode && hoverNode !== node) { hoverNode.removeAttribute('data-zone'); hoverNode = null; }
+  if (!node) return;
+  hoverNode = node;
+  const z = pe.target.closest('.bell') ? 'move' : zoneOf(node, pe.clientY, pe.pointerType);
+  if (node.dataset.zone !== z) node.dataset.zone = z;
+});
+track.addEventListener('pointerleave', () => { if (hoverNode && !busy()) { hoverNode.removeAttribute('data-zone'); hoverNode = null; } });
+function startEvDrag(pe, node, mode) {
+  const key = curKey(), e = findEv(key, node.dataset.id); if (!e) return;
+  const sy = pe.clientY, sx = pe.clientX, sScroll = scrollEl.scrollTop;
+  const o = { s: e.start, e: e.end }, dur = o.e - o.s;
+  const others = otherEvents(key, e.id);
+  const lowerB = Math.max(MIN_T, ...others.filter(x => x.end <= o.s).map(x => x.end));   // até onde a borda de cima pode subir
+  const upperB = Math.min(MAX_T, ...others.filter(x => x.start >= o.e).map(x => x.start)); // até onde a de baixo pode descer
+  let moved = false, last = pe, plan = null;
+  const apply = () => {
+    const dMin = ((last.clientY - sy) + (scrollEl.scrollTop - sScroll)) / PX_MIN;
+    if (mode === 'move') {
+      const r = planInsert(key, o.s + dMin, dur, e.id, false);
+      if (r) { plan = r; e.start = r.start; e.end = r.end; showMoves(r.moves, e.id); }
+    } else if (mode === 'top') {
+      e.start = clamp(snapEdge(o.s + dMin, [lowerB]), lowerB, o.e - MIN_DUR);
+    } else {
+      e.end = clamp(snapEdge(o.e + dMin, [upperB]), o.s + MIN_DUR, upperB);
+    }
+    placeEv(node, e);
+    showGuide(mode === 'bottom' ? e.end : e.start, e.color);
+  };
+  const move = ev => {
+    last = ev;
+    if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 5) return;
+    if (!moved) {
+      moved = true; node._lay = { col: 0, cols: 1 }; node.classList.add(mode === 'move' ? 'dragging' : 'resizing');
+      if (mode === 'move') node.style.pointerEvents = 'none';
+      document.body.classList.add(mode === 'move' ? 'is-dragging' : 'is-resizing'); autoStart(apply);
+    }
+    ev.preventDefault();
+    auto.x = ev.clientX; auto.y = ev.clientY;
+    apply();
+    if (mode === 'move') markChip(chipAt(ev.clientX, ev.clientY));
+  };
+  const finish = (ev, commit) => {
+    document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); document.removeEventListener('pointercancel', canc);
+    autoStop(); hideGuide(); document.body.classList.remove('is-dragging', 'is-resizing');
+    const chip = (commit && moved && mode === 'move') ? chipAt(ev.clientX, ev.clientY) : null;
+    markChip(null); node.style.pointerEvents = ''; node.classList.remove('dragging', 'resizing');
+    if (!moved) { if (commit && mode === 'move') openEditEvent(e.id); return; }   // clicar na bordinha não abre o editor
+    if (!commit) { e.start = o.s; e.end = o.e; renderGrid(); return; }
+    if (chip && chip.dataset.date !== key) {          // soltou em outro dia da semana
+      const to = chip.dataset.date, r = planInsert(to, o.s, dur, null, false);
+      if (r) {
+        applyMoves(to, r.moves);
+        state.events[key] = dayEvents(key).filter(x => x.id !== e.id);
+        e.start = r.start; e.end = r.end; dayEvents(to).push(e);
+        toast(say('movedTo', { day: dayLabel(parseKey(to)) }));
+      } else { e.start = o.s; e.end = o.e; toast(say('noRoomBlock')); }
+    } else if (plan) applyMoves(key, plan.moves);
+    silenceDay(key); if (chip) silenceDay(chip.dataset.date);
+    save(); renderHeader(); renderChips(); renderGrid();
+  };
+  const up = ev => finish(ev, true), canc = ev => finish(ev, false);
+  document.addEventListener('pointermove', move, { passive: false });
+  document.addEventListener('pointerup', up);
+  document.addEventListener('pointercancel', canc);
+}
+
+/* ================= Modals ================= */
+// Editar horário digitando: se o bloco crescer sobre os de baixo, eles são reajustados em cascata (colam no novo fim).
+function planEdit(key, id, s, f) {
+  const list = otherEvents(key, id).sort((a, b) => a.start - b.start);
+  const above = list.find(x => x.start < s && x.end > s);
+  if (above) return { error: say('errConflict', { name: above.name, s: fmt(above.start), f: fmt(above.end) }) };
+  const moves = {}; let cursor = f;
+  for (const x of list) {
+    if (x.start < s) continue;
+    const len = x.end - x.start;
+    if (x.start < cursor) { moves[x.id] = { start: cursor, end: cursor + len }; cursor += len; }
+    else cursor = Math.max(cursor, x.end);
+  }
+  if (cursor > MAX_T) return { error: say('errNoFit', { t: fmt(MAX_T) }) };
+  return { moves };
+}
+
+function openEditEvent(id) {
+  const key = curKey(), e = findEv(key, id); if (!e) return;
+  const name = el('input', { type: 'text', value: e.name, maxlength: '60', required: true });
+  const st = el('input', { type: 'time', value: toInput(e.start), step: '300', required: true });
+  const en = el('input', { type: 'time', value: toInput(e.end), step: '300', required: true });
+  const remS = el('input', { type: 'checkbox' }); remS.checked = !!e.remindStart;
+  const remE = el('input', { type: 'checkbox' }); remE.checked = !!e.remindEnd;
+  const err = el('div', { class: 'err' });
+  const del = el('button', { type: 'button', class: 'btn danger' }, say('del'));
+  twoStep(del, 'del', () => { state.events[key] = dayEvents(key).filter(x => x.id !== id); save(); closeModal(); renderHeader(); renderChips(); renderGrid(); });
+  const form = el('form', { onsubmit: ev => {
+    ev.preventDefault();
+    const s = fromInput(st.value); let f = fromInput(en.value); if (f === 0) f = 1440;   // 00:00 no fim = meia-noite
+    if (!(f > s)) { err.textContent = say('errEnd'); return; }
+    if (s < MIN_T || f > MAX_T) { err.textContent = say('errGrid', { a: fmt(MIN_T), b: fmt(MAX_T) }); return; }
+    const plan = planEdit(key, e.id, s, f);
+    if (plan.error) { err.textContent = plan.error; return; }
+    const nMoves = Object.keys(plan.moves).length;
+    const commit = () => {
+      applyMoves(key, plan.moves);
+      e.name = name.value.trim() || e.name; e.start = s; e.end = f; e.remindStart = remS.checked; e.remindEnd = remE.checked;
+      delete state.fired[`${key}|${e.id}|s|${s}`]; delete state.fired[`${key}|${e.id}|e|${f}`];
+      silenceDay(key);
+      save(); renderHeader(); renderChips(); renderGrid();
+      if (nMoves) toast(say('adjusted', nMoves));
+    };
+    closeModal();
+    if (nMoves && key === curKey()) {          // os blocos de baixo deslizam para o novo lugar e depois salva
+      showMoves(plan.moves, e.id);
+      const n = track.querySelector(`.ev[data-id="${e.id}"]`); if (n) placeEv(n, e, s, f);
+      setTimeout(commit, 240);
+    } else commit();
+  } },
+    el('div', { class: 'field' }, el('label', {}, say('fTitle')), name),
+    el('div', { class: 'two' },
+      el('div', { class: 'field' }, el('label', {}, say('fStart')), st),
+      el('div', { class: 'field' }, el('label', {}, say('fEnd')), en)),
+    el('div', { class: 'checks' },
+      el('label', { class: 'check' }, remS, say('chkStart')),
+      el('label', { class: 'check' }, remE, say('chkEnd', { n: REMIND_BEFORE }))),
+    err,
+    el('div', { class: 'mfoot' }, del, el('span', { class: 'sp' }),
+      el('button', { type: 'button', class: 'btn', onclick: closeModal }, say('cancel')),
+      el('button', { type: 'submit', class: 'btn primary' }, say('save'))));
+  openModal(say('editBlock'), form);
+}
+
+function openTemplateModal(id) {
+  const t = id ? { ...tpl(id) } : { name: '', color: PALETTE[5], icon: '⭐', dur: 60, remindStart: true, remindEnd: false };
+  const name = el('input', { type: 'text', value: t.name, maxlength: '40', required: true, placeholder: say('phName') });
+  const icon = el('input', { type: 'text', value: t.icon, maxlength: '4', 'aria-label': say('fIcon') });
+  const emo = el('div', { class: 'emojis' }, ICONS.map(i => el('button', { type: 'button', onclick: () => { icon.value = i; } }, i)));
+  const colorIn = el('input', { type: 'color', value: t.color, 'aria-label': say('colorCustom') });
+  const sw = el('div', { class: 'swatches' });
+  const drawSw = () => {
+    sw.innerHTML = '';
+    PALETTE.forEach(c => sw.append(el('button', { type: 'button', class: 'sw' + (c.toLowerCase() === t.color.toLowerCase() ? ' sel' : ''), style: `background:${c}`, 'aria-label': say('colorN', { c }),
+      onclick: () => { t.color = c; colorIn.value = c; drawSw(); } })));
+    sw.append(colorIn);
+  };
+  colorIn.addEventListener('input', () => { t.color = colorIn.value; drawSw(); });
+  drawSw();
+  const dur = el('input', { type: 'number', min: '5', max: '600', step: '5', value: String(t.dur) });
+  const remS = el('input', { type: 'checkbox' }); remS.checked = !!t.remindStart;
+  const remE = el('input', { type: 'checkbox' }); remE.checked = !!t.remindEnd;
+  const del = id ? el('button', { type: 'button', class: 'btn danger' }, say('del')) : null;
+  if (del) twoStep(del, 'del', () => {
+    state.templates = state.templates.filter(x => x.id !== id); save(); closeModal(); renderLibrary();
+    toast(say('taskRemoved'));
+  });
+  const form = el('form', { onsubmit: ev => {
+    ev.preventDefault();
+    const nm = name.value.trim(); if (!nm) return;
+    const d = clamp(parseInt(dur.value, 10) || 60, 5, 600);
+    const data = { name: nm, color: t.color, icon: icon.value.trim() || '•', dur: d, remindStart: remS.checked, remindEnd: remE.checked };
+    if (id) {
+      Object.assign(tpl(id), data);
+      Object.values(state.events).forEach(arr => arr.forEach(e => { if (e.tid === id) { e.name = data.name; e.color = data.color; e.icon = data.icon; } }));
+    } else state.templates.push({ id: uid(), ...data });
+    save(); closeModal(); renderAll();
+  } },
+    el('div', { class: 'field' }, el('label', {}, say('fName')), name),
+    el('div', { class: 'field' }, el('span', { class: 'lbl' }, say('fIcon')), el('div', { class: 'icon-row' }, icon, emo)),
+    el('div', { class: 'field' }, el('span', { class: 'lbl' }, say('fColor')), sw),
+    el('div', { class: 'field' }, el('label', {}, say('fDur')), dur),
+    el('div', { class: 'field' }, el('span', { class: 'lbl' }, say('fRem')),
+      el('div', { class: 'checks' },
+        el('label', { class: 'check' }, remS, say('chkStart')),
+        el('label', { class: 'check' }, remE, say('chkEnd', { n: REMIND_BEFORE })))),
+    el('p', { class: 'note' }, say('durNote')),
+    el('div', { class: 'mfoot' }, del, el('span', { class: 'sp' }),
+      el('button', { type: 'button', class: 'btn', onclick: closeModal }, say('cancel')),
+      el('button', { type: 'submit', class: 'btn primary' }, id ? say('save') : say('createTask'))));
+  openModal(id ? say('editTaskTitle') : say('newTaskTitle'), form);
+}
+
+$('#copyDay').onclick = () => {
+  const src = curKey(), evs = dayEvents(src);
+  if (!evs.length) { toast(say('emptyCopy')); return; }
+  const mon = mondayOf(cur), boxes = [];
+  const days = el('div', { class: 'days' });
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(mon, i), k = keyOf(d); if (k === src) continue;
+    const cb = el('input', { type: 'checkbox', 'data-k': k, 'data-wd': String(d.getDay()) }); boxes.push(cb);
+    const n = (state.events[k] || []).length;
+    days.append(el('label', {}, cb, el('span', {}, `${say('wd')[d.getDay()]} ${d.getDate()}`, n ? el('small', {}, say('copyN', { n })) : null)));
+  }
+  const setAll = fn => boxes.forEach(b => b.checked = fn(Number(b.dataset.wd)));
+  const form = el('form', { onsubmit: ev => {
+    ev.preventDefault();
+    const sel = boxes.filter(b => b.checked).map(b => b.dataset.k); if (!sel.length) return;
+    sel.forEach(k => { state.events[k] = evs.map(e => ({ ...e, id: uid() })); });
+    save(); closeModal(); renderChips(); renderHeader();
+    toast(say('copied', sel.length));
+  } },
+    el('p', { class: 'note', style: 'margin:0 0 12px' }, say('copyNote')),
+    el('div', { class: 'quick' },
+      el('button', { type: 'button', class: 'btn sm', onclick: () => setAll(w => w >= 1 && w <= 5) }, say('monFri')),
+      el('button', { type: 'button', class: 'btn sm', onclick: () => setAll(() => true) }, say('all')),
+      el('button', { type: 'button', class: 'btn sm', onclick: () => setAll(() => false) }, say('none'))),
+    days,
+    el('p', { class: 'note' }, say('copyWarn')),
+    el('div', { class: 'mfoot' }, el('span', { class: 'sp' }),
+      el('button', { type: 'button', class: 'btn', onclick: closeModal }, say('cancel')),
+      el('button', { type: 'submit', class: 'btn primary' }, say('copy'))));
+  openModal(say('copyTitle'), form);
+};
+twoStep($('#clearDay'), 'clearDay', () => { state.events[curKey()] = []; save(); renderHeader(); renderChips(); renderGrid(); });
+
+/* ================= Backup ================= */
+$('#exportBtn').onclick = () => {
+  try {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const a = el('a', { href: URL.createObjectURL(blob), download: `meu-dia-backup-${keyOf(new Date())}.json` });
+    document.body.append(a); a.click(); a.remove(); toast(say('backupExported'));
+  } catch (e) { toast(say('exportFail')); }
+};
+$('#importBtn').onclick = () => $('#importFile').click();
+$('#importFile').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!data || !Array.isArray(data.templates) || typeof data.events !== 'object') throw 0;
+    const keepLang = state.settings.lang;
+    state = normalize(data);
+    if (!(data.settings && LANGS.includes(data.settings.lang))) state.settings.lang = keepLang;   // backup antigo não traz idioma: mantém o atual
+    save(); applyI18n(); renderAll(); buildAxis(); toast(say('backupImported'));
+  } catch (err) { toast(say('invalidFile')); }
+  e.target.value = '';
+};
+
+/* ================= Notifications & reminders ================= */
+let actx = null;
+function unlockAudio() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.resume) actx.resume(); } catch (e) {} }
+document.addEventListener('pointerdown', unlockAudio, { once: true });
+function beep() {
+  try {
+    unlockAudio(); if (!actx) return;
+    [0, 0.2, 0.4].forEach(d => {
+      const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime + d;
+      o.type = 'sine'; o.frequency.value = 880;
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.2, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.18);
+      o.connect(g); g.connect(actx.destination); o.start(t0); o.stop(t0 + 0.2);
+    });
+  } catch (e) {}
+}
+function notify(title, body, color, tag) {
+  reminderToast(title, body, color); beep();
+  try {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const n = new Notification(title, { body, tag, requireInteraction: true });
+      n.onclick = () => { window.focus(); n.close(); };
+    }
+  } catch (e) {}
+}
+$('#notifBtn').onclick = async () => {
+  try { await Notification.requestPermission(); } catch (e) { toast(say('permFail')); }
+  renderStatus();
+};
+$('#notifTest').onclick = () => notify(say('testTitle'), say('testBody'), '#6366F1', 'test');
+
+// marca como "já avisado" os gatilhos que já passaram ao editar/criar blocos de hoje (evita aviso atrasado)
+function silenceDay(key) {
+  const now = new Date(); if (key !== keyOf(now)) return;
+  const nm = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  (state.events[key] || []).forEach(e => {
+    if (nm >= e.start) state.fired[`${key}|${e.id}|s|${e.start}`] = 1;
+    if (nm >= Math.max(e.end - REMIND_BEFORE, e.start)) state.fired[`${key}|${e.id}|e|${e.end}`] = 1;
+  });
+}
+function checkReminders() {
+  const now = new Date(), dk = keyOf(now);
+  const nm = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+  (state.events[dk] || []).forEach(e => {
+    if (e.remindStart) {                       // quando começa (tolerância de 2 min se a aba estava "dormindo")
+      const id = `${dk}|${e.id}|s|${e.start}`;
+      if (!state.fired[id] && nm >= e.start && nm < Math.min(e.start + 2, e.end)) {
+        state.fired[id] = 1; save();
+        notify(say('startsNow', { icon: e.icon || '⏰', name: e.name }), `${fmt(e.start)} – ${fmt(e.end)}`, e.color, id);
+      }
+    }
+    if (e.remindEnd) {                         // 10 min antes de acabar
+      const id = `${dk}|${e.id}|e|${e.end}`;
+      if (!state.fired[id] && nm >= Math.max(e.end - REMIND_BEFORE, e.start) && nm < e.end) {
+        state.fired[id] = 1; save();
+        const mins = Math.max(1, Math.ceil(e.end - nm));
+        notify(say('endsIn', { icon: e.icon || '⏰', name: e.name, n: mins }), say('endsAt', { e: fmt(e.end), s: fmt(e.start), f: fmt(e.end) }), e.color, id);
+      }
+    }
+  });
+}
+
+/* ================= Init ================= */
+function applyI18n() {
+  const L = lang();
+  document.documentElement.lang = LOCALE[L];
+  document.title = say('pageTitle');
+  document.querySelectorAll('[data-i18n]').forEach(n => { n.textContent = say(n.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-title]').forEach(n => { n.title = say(n.dataset.i18nTitle); });
+  document.querySelectorAll('[data-i18n-aria]').forEach(n => { n.setAttribute('aria-label', say(n.dataset.i18nAria)); });
+  const cd = $('#clearDay'); if (cd) cd.classList.remove('armed');
+  LANGS.forEach(l => { const b = $('#lang-' + l); if (b) { b.classList.toggle('on', l === L); b.setAttribute('aria-pressed', l === L ? 'true' : 'false'); } });
+}
+function setLang(l) {
+  if (!LANGS.includes(l) || l === state.settings.lang) return;
+  state.settings.lang = l; save();
+  closeModal(); closeRMenu();
+  applyI18n(); buildAxis(); renderAll(); updateZoomUI();
+}
+LANGS.forEach(l => { const b = $('#lang-' + l); if (b) b.onclick = () => setLang(l); });
+
+applyI18n();
+buildAxis();
+renderAll();
+sizePanel();
+updateZoomUI();
+fitGrid();
+scrollToNow();
+checkReminders();
+setInterval(checkReminders, 5000);
+setInterval(updateNow, 30000);
+})();
+</script>
+</body>
+</html>
