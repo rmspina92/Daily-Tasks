@@ -319,6 +319,39 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
 .prow.bad em{background:var(--hover);color:var(--ink)}
 .psum{font-size:12.5px;color:var(--muted);min-height:18px}
 .toast .tundo{margin-left:auto;border:0;background:transparent;color:inherit;font-weight:700;text-decoration:underline;padding:0 2px;white-space:nowrap}
+/* ---------- Tutorial (first visit) ---------- */
+.modal.tour{padding:24px 24px 20px}
+.tour h2{margin-bottom:8px}
+.tour .tbody{margin:0 0 14px;line-height:1.5}
+.tour-demo{display:grid;grid-template-columns:minmax(0,1fr) auto 112px;gap:12px;align-items:center;margin:2px 0 18px}
+.tour-src{border:1px solid var(--line);border-radius:12px;background:var(--input);padding:10px 12px;font:11.5px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);overflow:hidden}
+.tour-src div{white-space:pre;overflow:hidden;text-overflow:ellipsis}
+.tour-keys{display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--muted)}
+.tour-keys .kk{display:flex;gap:4px}
+.tour-keys kbd{display:inline-block;min-width:26px;padding:6px 8px;border-radius:7px;border:1px solid var(--line3);border-bottom-width:2px;background:var(--panel2);color:var(--ink);font:600 12px/1 'DM Sans',system-ui,sans-serif;text-align:center}
+.tour-grid{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:8px;display:flex;flex-direction:column;gap:3px}
+.tour-grid i{display:block;border-radius:5px;background:var(--c);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);transform-origin:top;animation:tFill .45s cubic-bezier(.2,.9,.3,1.1) both;animation-delay:calc(var(--i) * .16s + .3s)}
+@keyframes tFill{from{opacity:0;transform:scaleY(.2)}to{opacity:1;transform:none}}
+.tour-tips{display:flex;flex-direction:column;gap:8px;margin:2px 0 16px}
+.tour-tip{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--hover2);font-size:13.5px;line-height:1.45}
+.tour-tip .ti{flex:none;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:var(--panel2);font-size:15px}
+.tour-tip .btn{margin-top:8px}
+.tdots{display:flex;gap:6px;justify-content:center}
+.tdots i{width:7px;height:7px;border-radius:50%;background:var(--line3);transition:background .15s,transform .15s}
+.tdots i.on{background:var(--ink);transform:scale(1.25)}
+.tour-stat{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.tour-stat i{width:8px;height:8px;border-radius:50%;background:#B8B2A3;flex:none}
+.tour-stat i.ok{background:#22C55E}.tour-stat i.bad{background:var(--red)}.tour-stat i.warn{background:#F59E0B}
+.tour-tip .ti.num{font-size:13px;font-weight:700;color:var(--ink)}
+.tour-tip.hl{box-shadow:inset 0 0 0 1.5px var(--line3)}
+.tour-tip.hl .ti.num{background:var(--ink);color:var(--panel)}
+.tour-tip .tth{display:block;font-size:13.5px;margin-bottom:2px}
+.tour-tip .ttd{color:var(--muted);font-size:13px;line-height:1.5}
+.tour-tip .ttd b{color:var(--ink);font-weight:600}
+.tour-tip .ttd code{font:12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:1px 6px;border-radius:6px;background:var(--input);border:1px solid var(--line);color:var(--ink);user-select:all;word-break:break-all}
+.btn.tskip{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.tskip:hover{color:var(--ink);background:var(--hover)}
+@media (max-width:520px){.tour-demo{grid-template-columns:minmax(0,1fr)}.tour-keys{flex-direction:row;justify-content:center}.tour-keys span{transform:rotate(90deg)}.tour-grid{flex-direction:row;align-items:flex-end;justify-content:center}.tour-grid i{width:22px}}
 </style>
 </head>
 <body>
@@ -357,6 +390,8 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
             <div class="seg" role="group" data-i18n-aria="language" aria-label="Language"><button id="lang-en" title="English" aria-label="English">EN</button><button id="lang-es" title="Español" aria-label="Español">ES</button><button id="lang-pt" title="Português" aria-label="Português">PT</button></div></div>
           <div class="pref"><span class="lbl" data-i18n="timeFmt">Time format</span>
             <div class="seg" role="group" data-i18n-aria="timeFmt" aria-label="Time format"><button id="f12">12h</button><button id="f24">24h</button></div></div>
+          <div class="pref"><span class="lbl" data-i18n="tourShow">Tutorial</span>
+            <button class="btn sm" id="tourBtn" type="button" data-i18n="tourOpen">Show</button></div>
           <div class="panel-sec">
             <div class="sh"><h4 data-i18n="reminders">Reminders</h4><span class="status" id="notifStatus"></span></div>
             <div class="row">
@@ -526,6 +561,14 @@ const I18N = {
     pErrName: 'No task name', pErrOver: 'Overlaps another pasted line', pErrOverOld: 'Overlaps a block already there',
     pasted: 'Added {n}', undo: 'Undo', undone: 'Undone',
     nightMode: 'Night mode',
+    tourShow: 'Tutorial', tourOpen: 'Show', tourSkip: 'Skip', tourBack: 'Back', tourNext: 'Next', tourDone: 'Got it', tourNotif: 'Enable notifications',
+    tourT1: 'Fill your whole day in one paste', tourB1: 'Copy your schedule from NICE, then press {k} anywhere on this page. Check the preview, press Enter, and the whole day fills in automatically.',
+    tourT2: 'Fine-tune by dragging', tourTip1: 'Drag a block to move it.', tourTip2: 'Pull the top or bottom edge to resize it. The blocks next to it follow and stay glued.', tourTip3: 'Drag a task from "{t}" to add something new.',
+    tourT3: 'Turn on notifications', tourNStat: 'Status',
+    tourN1T: 'Allow it in Chrome', tourN1: 'Press **{btn}** and choose **Allow** in the Chrome pop-up. No pop-up? Click the crossed-out bell in the address bar.',
+    tourN2T: 'If Chrome blocked it', tourN2: 'Click the icon at the left of the address bar › **Site settings** › **Notifications** › **Allow**. Or paste `chrome://settings/content/notifications` in the address bar and remove this site from the blocked list.',
+    tourN3TMac: 'Allow Chrome on your Mac', tourN3Mac: 'Apple menu › **System Settings** (System Preferences on older macOS) › **Notifications** › **Google Chrome** › turn on **Allow notifications**. Pick **Alerts** to keep them on screen until you dismiss them. Make sure **Focus** (Do Not Disturb) is off.',
+    tourN3TWin: 'Allow Chrome on Windows', tourN3Win: 'Start › **Settings** › **System** › **Notifications** › turn on **Google Chrome**. Make sure Do Not Disturb is off.',
     timeFmt: 'Time format', zoomBars: 'Block zoom', zoomOut: 'Make blocks smaller', zoomIn: 'Make blocks bigger', zoomReset: 'Back to the size that fits the screen',
     language: 'Language',
     yourTasks: 'Your tasks', settings: 'Settings', hideSide: 'Hide your tasks', showSide: 'Show your tasks',
@@ -588,6 +631,14 @@ const I18N = {
     pErrName: 'Sin nombre de tarea', pErrOver: 'Se superpone con otra línea pegada', pErrOverOld: 'Se superpone con un bloque existente',
     pasted: 'Añadidos: {n}', undo: 'Deshacer', undone: 'Deshecho',
     nightMode: 'Modo noche',
+    tourShow: 'Tutorial', tourOpen: 'Ver', tourSkip: 'Omitir', tourBack: 'Atrás', tourNext: 'Siguiente', tourDone: 'Entendido', tourNotif: 'Activar notificaciones',
+    tourT1: 'Rellena todo el día de una vez', tourB1: 'Copia tu horario de NICE y pulsa {k} en cualquier parte de esta página. Revisa la vista previa, pulsa Enter y todo el día se rellena automáticamente.',
+    tourT2: 'Ajusta arrastrando', tourTip1: 'Arrastra un bloque para moverlo.', tourTip2: 'Tira del borde superior o inferior para cambiar su duración. Los bloques de al lado lo siguen y quedan pegados.', tourTip3: 'Arrastra una tarea de "{t}" para añadir algo nuevo.',
+    tourT3: 'Activa las notificaciones', tourNStat: 'Estado',
+    tourN1T: 'Permítelas en Chrome', tourN1: 'Pulsa **{btn}** y elige **Permitir** en la ventana de Chrome. ¿No aparece? Haz clic en la campana tachada de la barra de direcciones.',
+    tourN2T: 'Si Chrome las bloqueó', tourN2: 'Haz clic en el icono de la izquierda de la barra de direcciones › **Configuración del sitio** › **Notificaciones** › **Permitir**. O pega `chrome://settings/content/notifications` en la barra de direcciones y quita este sitio de la lista de bloqueados.',
+    tourN3TMac: 'Permite Chrome en tu Mac', tourN3Mac: 'Menú Apple › **Ajustes del Sistema** (Preferencias del Sistema en macOS antiguos) › **Notificaciones** › **Google Chrome** › activa **Permitir notificaciones**. Elige **Alertas** para que se queden en pantalla hasta que las cierres. Comprueba que **Concentración** (No molestar) esté desactivada.',
+    tourN3TWin: 'Permite Chrome en Windows', tourN3Win: 'Inicio › **Configuración** › **Sistema** › **Notificaciones** › activa **Google Chrome**. Comprueba que No molestar esté desactivado.',
     timeFmt: 'Formato de hora', zoomBars: 'Zoom de los bloques', zoomOut: 'Hacer los bloques más pequeños', zoomIn: 'Hacer los bloques más grandes', zoomReset: 'Volver al tamaño que cabe en la pantalla',
     language: 'Idioma',
     yourTasks: 'Tus tareas', settings: 'Ajustes', hideSide: 'Ocultar tus tareas', showSide: 'Mostrar tus tareas',
@@ -650,6 +701,14 @@ const I18N = {
     pErrName: 'Sem nome da task', pErrOver: 'Sobrepõe outra linha colada', pErrOverOld: 'Sobrepõe um bloco que já está lá',
     pasted: 'Adicionados: {n}', undo: 'Desfazer', undone: 'Desfeito',
     nightMode: 'Modo noturno',
+    tourShow: 'Tutorial', tourOpen: 'Ver', tourSkip: 'Pular', tourBack: 'Voltar', tourNext: 'Próximo', tourDone: 'Entendi', tourNotif: 'Ativar notificações',
+    tourT1: 'Preencha o dia inteiro de uma vez', tourB1: 'Copie sua agenda do NICE e aperte {k} em qualquer lugar desta página. Confira a prévia, aperte Enter e o dia inteiro é preenchido automaticamente.',
+    tourT2: 'Ajuste arrastando', tourTip1: 'Arraste um bloco para movê-lo.', tourTip2: 'Puxe a borda de cima ou de baixo para mudar a duração. Os blocos ao lado acompanham e continuam colados.', tourTip3: 'Arraste uma task de "{t}" para adicionar algo novo.',
+    tourT3: 'Ative as notificações', tourNStat: 'Status',
+    tourN1T: 'Permita no Chrome', tourN1: 'Aperte **{btn}** e escolha **Permitir** na janelinha do Chrome. Não apareceu? Clique no sininho riscado na barra de endereço.',
+    tourN2T: 'Se o Chrome bloqueou', tourN2: 'Clique no ícone à esquerda da barra de endereço › **Configurações do site** › **Notificações** › **Permitir**. Ou cole `chrome://settings/content/notifications` na barra de endereço e tire este site da lista de bloqueados.',
+    tourN3TMac: 'Libere o Chrome no seu Mac', tourN3Mac: 'Menu Apple › **Ajustes do Sistema** (Preferências do Sistema em macOS antigos) › **Notificações** › **Google Chrome** › ligue **Permitir notificações**. Escolha **Alertas** para que fiquem na tela até você fechar. Confira se o **Foco** (Não Perturbe) está desligado.',
+    tourN3TWin: 'Libere o Chrome no Windows', tourN3Win: 'Iniciar › **Configurações** › **Sistema** › **Notificações** › ligue **Google Chrome**. Confira se o Não Perturbe está desligado.',
     timeFmt: 'Formato de hora', zoomBars: 'Zoom das barras', zoomOut: 'Diminuir as barras', zoomIn: 'Aumentar as barras', zoomReset: 'Voltar ao tamanho que cabe na tela',
     language: 'Idioma',
     yourTasks: 'Suas tasks', settings: 'Configurações', hideSide: 'Ocultar suas tasks', showSide: 'Mostrar suas tasks',
@@ -742,6 +801,7 @@ function normalize(s) {
   s.settings = Object.assign({ h24: true, zi: 1, lang: 'en', sideOff: false, dark: false }, s.settings || {});
   s.settings.sideOff = !!s.settings.sideOff;
   s.settings.dark = s.settings.dark === true;
+  s.settings.tourDone = s.settings.tourDone === true;
   if (typeof s.settings.setOpen !== 'boolean') delete s.settings.setOpen;
   if (!LANGS.includes(s.settings.lang)) s.settings.lang = 'en';
   if (!Number.isInteger(s.settings.zi) || s.settings.zi < 0 || s.settings.zi >= ZLEVELS.length) s.settings.zi = 1;
@@ -1944,6 +2004,69 @@ function checkReminders() {
   });
 }
 
+
+/* ================= Tutorial (first visit) ================= */
+const isMac = () => /mac|iphone|ipad/i.test((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || '');
+const TOUR_DEMO = [['Chat+Email', '09:00 AM', '11:00 AM', '#F59E0B', 120], ['Case + Voice - Online', '11:00 AM', '12:00 PM', '#22C55E', 60], ['Break', '12:00 PM', '12:15 PM', '#38BDF8', 15],
+                   ['Chat+Email', '12:15 PM', '02:00 PM', '#F59E0B', 105], ['Lunch', '02:00 PM', '03:00 PM', '#6366F1', 60]];
+// texto com **negrito** e `código` -> nós do DOM (os textos são todos nossos)
+function rich(s) {
+  return String(s).split(/(\*\*[^*]+\*\*|`[^`]+`)/).filter(Boolean).map(p =>
+    p.startsWith('**') ? el('b', {}, p.slice(2, -2)) : p.startsWith('`') ? el('code', {}, p.slice(1, -1)) : p);
+}
+function openTour(start) {
+  const N = 3; let i = Math.max(0, Math.min(N - 1, start || 0));
+  const body = el('div', { class: 'tbox' });
+  const tip = (ico, txt, extra) => el('div', { class: 'tour-tip' }, el('span', { class: 'ti' }, ico), el('div', {}, txt, extra));
+  const draw = () => {
+    const titles = [say('tourT1'), say('tourT2'), say('tourT3')];
+    const h = modalEl && modalEl.querySelector('h2'); if (h) h.textContent = titles[i];
+    const dlg = modalEl && modalEl.querySelector('.modal'); if (dlg) dlg.setAttribute('aria-label', titles[i]);
+    body.innerHTML = '';
+    if (i === 0) {
+      body.append(
+        el('p', { class: 'tbody' }, say('tourB1', { k: isMac() ? 'Cmd+V' : 'Ctrl+V' })),
+        el('div', { class: 'tour-demo' },
+          el('div', { class: 'tour-src' }, TOUR_DEMO.map(r => el('div', {}, `${r[0]}  ${r[1]}  ${r[2]}`))),
+          el('div', { class: 'tour-keys' }, el('div', { class: 'kk' }, el('kbd', {}, isMac() ? '⌘' : 'Ctrl'), el('kbd', {}, 'V')), el('span', {}, '➜')),
+          el('div', { class: 'tour-grid' }, TOUR_DEMO.map((r, k) => el('i', { style: `--c:${shade(r[3])};height:${Math.max(6, r[4] / 5)}px;--i:${k}` })))));
+    } else if (i === 1) {
+      body.append(el('div', { class: 'tour-tips' },
+        tip('✋', say('tourTip1')), tip('↕️', say('tourTip2')), tip('➕', say('tourTip3', { t: say('yourTasks') }))));
+    } else {
+      const has = 'Notification' in window, perm = has ? Notification.permission : 'none';
+      const ask = perm === 'default' ? el('button', { type: 'button', class: 'btn sm', onclick: async () => {
+        try { await Notification.requestPermission(); } catch (e) { toast(say('permFail')); }
+        renderStatus(); applySide(); draw();
+      } }, say('tourNotif')) : null;
+      const cls = { granted: 'ok', denied: 'bad', default: 'warn', none: 'bad' }[perm];
+      const lbl = { granted: 'notifOn', denied: 'notifDenied', default: 'notifOff', none: 'notifNone' }[perm];
+      const hl = { default: 0, denied: 1, granted: 2 }[perm];       // destaca o passo que provavelmente falta
+      const mac = isMac();
+      const step = (n, ttl, txt, extra) => el('div', { class: 'tour-tip' + (hl === n - 1 ? ' hl' : '') }, el('span', { class: 'ti num' }, String(n)),
+        el('div', {}, el('b', { class: 'tth' }, ttl), el('div', { class: 'ttd' }, rich(txt)), extra));
+      body.append(
+        el('div', { class: 'tour-stat' }, el('i', { class: cls }), `${say('tourNStat')}: ${say(lbl)}`),
+        el('div', { class: 'tour-tips' },
+          step(1, say('tourN1T'), say('tourN1', { btn: say('tourNotif') }), ask),
+          step(2, say('tourN2T'), say('tourN2')),
+          step(3, say(mac ? 'tourN3TMac' : 'tourN3TWin'), say(mac ? 'tourN3Mac' : 'tourN3Win'))));
+    }
+    const next = el('button', { type: 'button', class: 'btn primary', onclick: () => { if (i < N - 1) { i++; draw(); } else closeModal(); } }, i < N - 1 ? say('tourNext') : say('tourDone'));
+    body.append(
+      el('div', { class: 'tdots' }, [0, 1, 2].map(k => el('i', { class: k === i ? 'on' : '' }))),
+      el('div', { class: 'mfoot' },
+        i < N - 1 ? el('button', { type: 'button', class: 'btn tskip', onclick: closeModal }, say('tourSkip')) : null,
+        el('span', { class: 'sp' }),
+        i > 0 ? el('button', { type: 'button', class: 'btn', onclick: () => { i--; draw(); } }, say('tourBack')) : null,
+        next));
+    next.focus();
+  };
+  openModal(say('tourT1'), body, 'wide tour');
+  draw();
+}
+$('#tourBtn').onclick = () => openTour(0);
+
 /* ================= Init ================= */
 /* ================= Side panel (collapse) & settings ================= */
 function needsNotifSetup() { return ('Notification' in window) && Notification.permission !== 'granted'; }
@@ -2003,6 +2126,8 @@ updateZoomUI();
 fitGrid();
 scrollToNow();
 checkReminders();
+// primeira visita: mostra o tutorial uma única vez (dá para rever em Settings)
+if (!state.settings.tourDone) { state.settings.tourDone = true; save(); setTimeout(() => { if (!modalEl) openTour(0); }, 600); }
 setInterval(checkReminders, 5000);
 setInterval(updateNow, 30000);
 })();
