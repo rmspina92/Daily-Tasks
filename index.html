@@ -23,19 +23,23 @@
   --daysel:#F1EEE6; --daysel-line:#CFC8B7; --toast-bg:#1E2230; --toast-fg:#FFFFFF;
   --ov:rgba(30,34,48,.42); --focus:#3B82F6;
 }
-/* ---------- Night mode: soft blue-charcoal, warm off-white text, muted block tones ---------- */
+/* ---------- Night mode: soft blue-charcoal (a notch lighter), warm off-white text, deep block tones ---------- */
 html[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#14161C; --panel:#1C1F28; --panel2:#242835; --ink:#E4E2DC; --muted:#9A9EAD;
-  --line:#2E3342; --line2:#252936; --red:#F0696E;
-  --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.26);
-  --hover:#2A2E3B; --hover2:#232733; --line3:#3B4054; --dash:#3B4054;
-  --fill:#D9D6CE; --fill-h:#E8E5DD; --fill-fg:#15171D; --fill-sub:#4F5363;
-  --dng:#F28E88; --dng-line:#5A3436; --faint:#6A6E7D; --lift:rgba(255,255,255,.3);
-  --drop-bg:#1E2A45; --drop-sel:#34406B; --input:#171A21; --chipbg:#2C303D;
-  --daysel:#2A2F3E; --daysel-line:#474D62; --toast-bg:#2B2F3E; --toast-fg:#E4E2DC;
-  --ov:rgba(6,7,11,.64); --focus:#7FB0FF;
+  --bg:#1D202A; --panel:#272B37; --panel2:#313644; --ink:#E6E4DE; --muted:#A3A7B6;
+  --line:#3A3F4E; --line2:#2F3441; --red:#F2737A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.22);
+  --hover:#343947; --hover2:#2E3341; --line3:#474D60; --dash:#4A5064;
+  --fill:#DCD9D1; --fill-h:#ECE9E1; --fill-fg:#171A21; --fill-sub:#4F5363;
+  --dng:#F59A94; --dng-line:#66393B; --faint:#7B8090; --lift:rgba(255,255,255,.32);
+  --drop-bg:#27365A; --drop-sel:#3D4C82; --input:#202430; --chipbg:#383D4D;
+  --daysel:#343A4C; --daysel-line:#555C74; --toast-bg:#394055; --toast-fg:#E8E6E0;
+  --ov:rgba(8,9,14,.62); --focus:#8DBBFF;
 }
+/* on the deeper block colors, hover/overlay tints go light instead of dark */
+html[data-theme="dark"] .ev[data-zone="top"] .h.top,html[data-theme="dark"] .ev[data-zone="bottom"] .h.bottom{background:rgba(255,255,255,.22)}
+html[data-theme="dark"] .ev .bell:hover,html[data-theme="dark"] .tcard .edit:hover{background:rgba(255,255,255,.16)}
+html[data-theme="dark"] .prow em{background:rgba(255,255,255,.2)}
 body.side-off{--wrap:calc(var(--railw) + var(--gap) + var(--gridw) + var(--pad) * 2)}
 [hidden]{display:none!important}
 *{box-sizing:border-box}
@@ -452,6 +456,26 @@ const _lin = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
 const _gam = c => { c = Math.max(0, Math.min(1, c)); return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; };
 const _hex = (r, g, b) => '#' + [r, g, b].map(v => Math.round(_gam(v) * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
 const _toneCache = {};
+function _okHex(L, C, h) {
+  let r = 0, g = 0, bl = 0;
+  for (let i = 0; i < 60; i++) {
+    const A = C * Math.cos(h), Bb = C * Math.sin(h);
+    const l3 = Math.pow(L + 0.3963377774 * A + 0.2158037573 * Bb, 3);
+    const m3 = Math.pow(L - 0.1055613458 * A - 0.0638541728 * Bb, 3);
+    const s3 = Math.pow(L - 0.0894841775 * A - 1.2914855480 * Bb, 3);
+    r = 4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3;
+    g = -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3;
+    bl = -0.0041960863 * l3 - 0.7034186147 * m3 + 1.7076147010 * s3;
+    if ([r, g, bl].every(v => v >= -0.001 && v <= 1.001)) break;
+    C *= 0.94;
+  }
+  return _hex(r, g, bl);
+}
+const TEXT_LIGHT = '#F7F5F0', TEXT_DARK = '#14161C';
+function _relLum(hex) {
+  const h = hex.replace('#', '');
+  return 0.2126 * _lin(parseInt(h.slice(0, 2), 16) / 255) + 0.7152 * _lin(parseInt(h.slice(2, 4), 16) / 255) + 0.0722 * _lin(parseInt(h.slice(4, 6), 16) / 255);
+}
 function tone(hex) {
   if (!/^#[0-9a-f]{6}$/i.test(String(hex))) return hex;
   const key = hex.toLowerCase();
@@ -463,31 +487,16 @@ function tone(hex) {
   const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
   const a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
   const b = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
-  const h = Math.atan2(b, a);
-  const L2 = Math.min(0.74, Math.max(0.58, 0.67 + 0.22 * (L - 0.68)));
-  let C2 = Math.hypot(a, b) * 0.80, out = hex;
-  for (let i = 0; i < 40; i++) {
-    const A = C2 * Math.cos(h), Bb = C2 * Math.sin(h);
-    const l3 = Math.pow(L2 + 0.3963377774 * A + 0.2158037573 * Bb, 3);
-    const m3 = Math.pow(L2 - 0.1055613458 * A - 0.0638541728 * Bb, 3);
-    const s3 = Math.pow(L2 - 0.0894841775 * A - 1.2914855480 * Bb, 3);
-    const r = 4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3;
-    const g = -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3;
-    const bl = -0.0041960863 * l3 - 0.7034186147 * m3 + 1.7076147010 * s3;
-    out = _hex(r, g, bl);
-    if ([r, g, bl].every(v => v >= -0.001 && v <= 1.001)) break;
-    C2 *= 0.94;
-  }
+  const h = Math.atan2(b, a), C2 = Math.hypot(a, b) * 0.95;
+  let L2 = Math.min(0.66, Math.max(0.44, 0.58 + 0.25 * (L - 0.68)));
+  let out = _okHex(L2, C2, h);
+  const yl = _relLum(TEXT_LIGHT) + 0.05;
+  while (yl / (_relLum(out) + 0.05) < 4.5 && L2 > 0.36) { L2 -= 0.01; out = _okHex(L2, C2, h); }   // sempre com texto claro legível
   return (_toneCache[key] = out);
 }
-function _relLum(hex) {
-  const h = hex.replace('#', '');
-  return 0.2126 * _lin(parseInt(h.slice(0, 2), 16) / 255) + 0.7152 * _lin(parseInt(h.slice(2, 4), 16) / 255) + 0.0722 * _lin(parseInt(h.slice(4, 6), 16) / 255);
-}
 function textOnTone(bg) {
-  const y = _relLum(bg), dark = '#14161C', light = '#F2F0EA';
-  const cd = (y + 0.05) / (_relLum(dark) + 0.05), cl = (_relLum(light) + 0.05) / (y + 0.05);
-  return cd >= cl ? dark : light;
+  const y = _relLum(bg) + 0.05, cd = y / (_relLum(TEXT_DARK) + 0.05), cl = (_relLum(TEXT_LIGHT) + 0.05) / y;
+  return cd >= cl ? TEXT_DARK : TEXT_LIGHT;
 }
 const isDark = () => !!(state && state.settings && state.settings.dark);
 const shade = hex => isDark() ? tone(hex) : hex;
@@ -1956,7 +1965,7 @@ $('#setBtn').onclick = () => { state.settings.setOpen = !setOpenNow(); save(); a
 function applyTheme() {
   const d = isDark();
   document.documentElement.setAttribute('data-theme', d ? 'dark' : 'light');
-  const mt = $('#metaTheme'); if (mt) mt.setAttribute('content', d ? '#14161C' : '#F4F1EA');
+  const mt = $('#metaTheme'); if (mt) mt.setAttribute('content', d ? '#1D202A' : '#F4F1EA');
   const sw = $('#nightSw'); if (sw) sw.setAttribute('aria-checked', d ? 'true' : 'false');
 }
 $('#nightSw').onclick = () => {
