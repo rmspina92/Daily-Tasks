@@ -280,9 +280,15 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
 }
 /* ---------- Reminder alerts: big, in the block color ---------- */
 #ralerts{position:fixed;top:14px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:10px;z-index:3100;width:min(540px,calc(100vw - 24px))}
-.rem-alert{--c:#6366F1;--fg:#fff;display:flex;align-items:center;gap:14px;padding:16px 14px 16px 16px;border-radius:18px;background:var(--c);color:var(--fg);
+.rem-alert{--c:#6366F1;--fg:#fff;display:flex;align-items:center;gap:14px;padding:16px 14px 22px 16px;border-radius:18px;background:var(--c);color:var(--fg);
   box-shadow:0 18px 44px rgba(30,34,48,.38),inset 0 0 0 3px rgba(255,255,255,.85);
-  animation:raDrop .4s cubic-bezier(.2,1.25,.3,1),raGlow 1.3s ease-out .4s 6}
+  position:relative;animation:raDrop .4s cubic-bezier(.2,1.25,.3,1),raGlow 1.3s ease-out .4s 6}
+.rem-alert.out{animation:raOut .22s ease-in forwards;pointer-events:none}
+.rem-alert .ra-bar{position:absolute;left:18px;right:18px;bottom:6px;height:3px;border-radius:3px;background:rgba(255,255,255,.25);overflow:hidden}
+.rem-alert .ra-bar i{display:block;height:100%;background:var(--fg);opacity:.75;transform-origin:left;animation:raBar var(--dur) linear forwards}
+.rem-alert.paused .ra-bar i{animation-play-state:paused}
+@keyframes raBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+@keyframes raOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-14px) scale(.96)}}
 .rem-alert .ra-ic{flex:none;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(255,255,255,.28)}
 .rem-alert .ra-tx{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
 .rem-alert .ra-tx b{font-size:18px;line-height:1.2;font-weight:700;letter-spacing:-.01em;overflow-wrap:anywhere}
@@ -301,7 +307,7 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
 @media (prefers-reduced-motion:no-preference){
   html.theme-fade *{transition:background-color .28s ease,color .28s ease,border-color .28s ease,box-shadow .28s ease!important}
 }
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rem-alert .ra-bar{display:none}}
 /* ---------- Paste schedule ---------- */
 .modal.wide{width:min(560px,100%)}
 .field textarea{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--input);width:100%;min-height:128px;resize:vertical;font:inherit;font-size:13px;line-height:1.5;color:inherit}
@@ -884,15 +890,37 @@ function toast(msg, opts = {}) {
   document.getElementById('toasts').append(t);
   setTimeout(() => t.remove(), opts.ms || 3200);
 }
-// banner grande, na cor do bloco, no topo da página; fica até você fechar
+// banner grande, na cor do bloco, no topo da página; some sozinho depois de alguns segundos
+const ALERT_MS = 8000;
 function reminderToast(title, body, color, emoji) {
   let box = document.getElementById('ralerts');
   if (!box) { box = el('div', { id: 'ralerts', role: 'alert', 'aria-live': 'assertive' }); document.body.append(box); }
-  const a = el('div', { class: 'rem-alert', style: `--c:${color};--fg:${textOn(color)}` },
+  const a = el('div', { class: 'rem-alert', style: `--c:${color};--fg:${textOn(color)};--dur:${ALERT_MS}ms` },
     el('div', { class: 'ra-ic' }, emoji || '🔔'),
     el('div', { class: 'ra-tx' }, el('b', {}, title), el('span', {}, body)),
-    el('button', { class: 'ra-x', 'aria-label': say('close'), onclick: () => a.remove() }, '×'));
+    el('button', { class: 'ra-x', 'aria-label': say('close'), onclick: () => close() }, '×'),
+    el('div', { class: 'ra-bar' }, el('i')));
   box.append(a);
+  // o tempo só corre enquanto você está olhando: pausa com o mouse/foco em cima ou com a aba em segundo plano
+  let left = ALERT_MS, t0 = 0, tm = null, over = false, dead = false;
+  const tick = () => {
+    if (dead) return;
+    const hold = over || document.hidden;
+    if (hold) { if (tm) { clearTimeout(tm); tm = null; left -= Date.now() - t0; } a.classList.add('paused'); }
+    else if (!tm) { t0 = Date.now(); tm = setTimeout(close, Math.max(left, 0)); a.classList.remove('paused'); }
+  };
+  const close = () => {
+    if (dead) return;
+    dead = true; clearTimeout(tm); tm = null;
+    document.removeEventListener('visibilitychange', tick);
+    a.classList.add('out'); setTimeout(() => a.remove(), 240);
+  };
+  a.addEventListener('mouseenter', () => { over = true; tick(); });
+  a.addEventListener('mouseleave', () => { over = false; tick(); });
+  a.addEventListener('focusin', () => { over = true; tick(); });
+  a.addEventListener('focusout', () => { over = false; tick(); });
+  document.addEventListener('visibilitychange', tick);
+  tick();
 }
 
 /* ================= Modal ================= */
@@ -2128,8 +2156,21 @@ scrollToNow();
 checkReminders();
 // primeira visita: mostra o tutorial uma única vez (dá para rever em Settings)
 if (!state.settings.tourDone) { state.settings.tourDone = true; save(); setTimeout(() => { if (!modalEl) openTour(0); }, 600); }
+// Ritmo dos lembretes. O Chrome atrasa os timers de abas em segundo plano (depois de ~5 min escondida eles só rodam 1x por minuto).
+// Timers dentro de um Worker não sofrem esse atraso: um Worker "bate o ponto" a cada segundo. O setInterval fica como reserva.
+try {
+  const wurl = URL.createObjectURL(new Blob(['setInterval(function(){postMessage(1)},1000)'], { type: 'text/javascript' }));
+  const beat = new Worker(wurl);
+  beat.onmessage = () => checkReminders();
+  beat.onerror = () => { try { beat.terminate(); } catch (e) {} };
+} catch (e) {}
 setInterval(checkReminders, 5000);
 setInterval(updateNow, 30000);
+// ao voltar para a aba (ou ao acordar o Mac), confere na hora
+const catchUp = () => { if (!document.hidden) { checkReminders(); updateNow(); } };
+document.addEventListener('visibilitychange', catchUp);
+window.addEventListener('focus', catchUp);
+window.addEventListener('pageshow', catchUp);
 })();
 </script>
 </body>
