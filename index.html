@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>My Day</title>
+<meta name="theme-color" id="metaTheme" content="#F4F1EA">
+<script>try{var __s=JSON.parse(localStorage.getItem('meu-dia-v1')||'null');if(__s&&__s.settings&&__s.settings.dark===true)document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -11,45 +13,99 @@
   --bg:#F4F1EA; --panel:#FFFFFF; --ink:#1E2230; --muted:#707482;
   --line:#E4DFD3; --line2:#EFEBE1; --red:#E5484D; --hour:52px;
   --shadow:0 1px 2px rgba(30,34,48,.06),0 4px 14px rgba(30,34,48,.05);
+  --sidew:292px; --railw:46px; --gridw:600px; --gap:16px; --pad:20px;
+  --wrap:calc(var(--sidew) + var(--gap) + var(--gridw) + var(--pad) * 2);
+  /* theme colors (light) */
+  --panel2:#FFFFFF; --hover:#F0ECE3; --hover2:#F8F5EE; --line3:#D8D2C3; --dash:#CFC8B7;
+  --fill:#1E2230; --fill-h:#343A50; --fill-fg:#FFFFFF; --fill-sub:#B9BDCC;
+  --dng:#B42318; --dng-line:#F3C7C3; --faint:#B3AD9F; --lift:rgba(30,34,48,.28);
+  --drop-bg:#EAF2FF; --drop-sel:#2B3350; --input:#FFFFFF; --chipbg:#F6F3EC;
+  --daysel:#F1EEE6; --daysel-line:#CFC8B7; --toast-bg:#1E2230; --toast-fg:#FFFFFF;
+  --ov:rgba(30,34,48,.42); --focus:#3B82F6;
 }
+/* ---------- Night mode: soft blue-charcoal, warm off-white text, muted block tones ---------- */
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#14161C; --panel:#1C1F28; --panel2:#242835; --ink:#E4E2DC; --muted:#9A9EAD;
+  --line:#2E3342; --line2:#252936; --red:#F0696E;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.26);
+  --hover:#2A2E3B; --hover2:#232733; --line3:#3B4054; --dash:#3B4054;
+  --fill:#D9D6CE; --fill-h:#E8E5DD; --fill-fg:#15171D; --fill-sub:#4F5363;
+  --dng:#F28E88; --dng-line:#5A3436; --faint:#6A6E7D; --lift:rgba(255,255,255,.3);
+  --drop-bg:#1E2A45; --drop-sel:#34406B; --input:#171A21; --chipbg:#2C303D;
+  --daysel:#2A2F3E; --daysel-line:#474D62; --toast-bg:#2B2F3E; --toast-fg:#E4E2DC;
+  --ov:rgba(6,7,11,.64); --focus:#7FB0FF;
+}
+body.side-off{--wrap:calc(var(--railw) + var(--gap) + var(--gridw) + var(--pad) * 2)}
+[hidden]{display:none!important}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;font-family:'DM Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);
   display:flex;flex-direction:column;overflow-x:hidden;overflow-y:auto;font-size:14px}
 button{font:inherit;color:inherit;cursor:pointer}
 input{font:inherit;color:inherit}
-:focus-visible{outline:2px solid #3B82F6;outline-offset:2px}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
 
 /* ---------- Top bar ---------- */
-.top{display:flex;align-items:center;gap:20px;padding:14px 20px 10px;flex-wrap:wrap}
+.top{display:flex;align-items:center;gap:20px;padding:14px var(--pad) 10px;flex-wrap:wrap;width:100%;max-width:var(--wrap);margin-left:auto;margin-right:auto}
 .top .left{min-width:220px;flex:1}
 .top h1{margin:0;font-size:24px;letter-spacing:-.02em;font-weight:700}
 .top .sub{color:var(--muted);margin-top:2px;font-size:13px}
 .nav{display:flex;align-items:center;gap:6px;background:var(--panel);padding:4px;border-radius:12px;box-shadow:var(--shadow)}
 .nav button,.nav input{border:0;background:transparent;border-radius:8px;padding:7px 11px;font-weight:500}
-.nav button:hover{background:#F0ECE3}
-.nav .today{background:var(--ink);color:#fff}
-.nav .today:hover{background:#343A50}
+.nav button:hover{background:var(--hover)}
+.nav .today{background:var(--fill);color:var(--fill-fg)}
+.nav .today:hover{background:var(--fill-h)}
 .nav input[type=date]{cursor:pointer}
-.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .btn{border:1px solid var(--line);background:var(--panel);padding:8px 12px;border-radius:10px;font-weight:500;transition:background .15s,border-color .15s}
-.btn:hover{background:#F8F5EE;border-color:#D8D2C3}
-.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
-.btn.primary:hover{background:#343A50}
-.btn.danger{color:#B42318;border-color:#F3C7C3}
+.btn:hover{background:var(--hover2);border-color:var(--line3)}
+.btn.primary{background:var(--fill);color:var(--fill-fg);border-color:var(--fill)}
+.btn.primary:hover{background:var(--fill-h)}
+.btn.danger{color:var(--dng);border-color:var(--dng-line)}
 .btn.danger.armed{background:#B42318;color:#fff;border-color:#B42318}
 .btn.sm{padding:5px 9px;font-size:12.5px;border-radius:8px}
 .seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:2px}
 .seg button{border:0;background:transparent;padding:6px 10px;border-radius:8px;font-size:12.5px;font-weight:500;color:var(--muted)}
-.seg button.on{background:var(--ink);color:#fff}
+.seg button.on{background:var(--fill);color:var(--fill-fg)}
 .seg button:disabled{opacity:.35;cursor:default}
 
 /* ---------- Layout ---------- */
-main{flex:1;min-height:0;display:flex;gap:16px;padding:0 20px 16px}
-.side{width:300px;flex:none;background:var(--panel);border-radius:18px;box-shadow:var(--shadow);padding:16px;overflow:auto;display:flex;flex-direction:column;gap:18px;min-height:0}
+main{flex:1;min-height:0;display:flex;gap:var(--gap);padding:0 var(--pad) 16px;width:100%;max-width:var(--wrap);margin-left:auto;margin-right:auto}
+.side{width:var(--sidew);flex:none;background:var(--panel);border-radius:18px;box-shadow:var(--shadow);overflow:auto;display:flex;flex-direction:column;min-height:0;align-self:flex-start;max-height:100%}
 .side h3{margin:0 0 8px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .side .hint{margin:0 0 10px;color:var(--muted);font-size:12.5px;line-height:1.45}
 .right{flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;min-width:0}
+
+/* ---------- Side panel: collapsible + settings ---------- */
+.side-full{display:flex;flex-direction:column;gap:14px;padding:16px;min-height:0}
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.side .sec-head h3{margin:0}
+.ib{width:28px;height:28px;border:0;background:transparent;border-radius:8px;color:var(--muted);display:flex;align-items:center;justify-content:center;flex:none}
+.ib:hover{background:var(--hover);color:var(--ink)}
+.set-sec{border-top:1px solid var(--line2);padding-top:4px}
+.acc{width:100%;display:flex;align-items:center;gap:8px;border:0;background:transparent;padding:8px 2px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;text-align:left}
+.acc:hover{color:var(--ink)}
+.acc .chev{margin-left:auto;transition:transform .18s}
+.acc[aria-expanded="true"] .chev{transform:rotate(180deg)}
+.set-body{padding:4px 2px 2px;display:flex;flex-direction:column;gap:12px}
+.set-body h4{margin:0 0 6px;font-size:12px;font-weight:700;color:var(--ink)}
+.sh{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.set-body .sh h4{margin:0}
+.sh .status{margin:0;font-size:12px;color:var(--muted);white-space:nowrap}
+.pref{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pref .lbl{font-size:12.5px}
+.alert-dot{display:none;width:8px;height:8px;border-radius:50%;background:#F59E0B;flex:none}
+.alert-dot.on{display:inline-block}
+.side-rail{display:none}
+body.side-off .side{width:var(--railw)}
+body.side-off .side-full{display:none}
+body.side-off .side-rail{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;padding:12px 0 14px;border:0;background:transparent;color:var(--muted)}
+.side-rail:hover{color:var(--ink)}
+.side-rail .rail-tx{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;font-weight:700}
+
+/* ---------- Day bar (above the grid) ---------- */
+.daybar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.daybar .dl{display:flex;gap:6px;flex-wrap:wrap}
 
 /* ---------- Library ---------- */
 .lib{display:flex;flex-direction:column;gap:8px}
@@ -64,8 +120,8 @@ main{flex:1;min-height:0;display:flex;gap:16px;padding:0 20px 16px}
 .tcard .edit{border:0;background:rgba(255,255,255,.0);color:inherit;opacity:.0;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;transition:opacity .12s,background .12s}
 .tcard:hover .edit,.tcard:focus-within .edit{opacity:.75}
 .tcard .edit:hover{background:rgba(0,0,0,.14);opacity:1}
-.add-task{border:1.5px dashed #CFC8B7;background:transparent;border-radius:12px;padding:11px;color:var(--muted);font-weight:600;transition:all .15s}
-.add-task:hover{border-color:var(--ink);color:var(--ink);background:#FAF8F3}
+.add-task{border:1.5px dashed var(--dash);background:transparent;border-radius:12px;padding:11px;color:var(--muted);font-weight:600;transition:all .15s}
+.add-task:hover{border-color:var(--ink);color:var(--ink);background:var(--hover2)}
 .ghost{position:fixed;z-index:1000;pointer-events:none;width:230px;transform:rotate(-2deg);box-shadow:0 14px 30px rgba(30,34,48,.28)!important;opacity:.95}
 body.is-dragging,body.is-dragging *{cursor:grabbing!important;user-select:none!important;-webkit-user-select:none!important}
 body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!important;-webkit-user-select:none!important}
@@ -78,7 +134,7 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
 /* ---------- Week bar ---------- */
 .weekbar{display:flex;align-items:stretch;gap:6px}
 .weekbar .wk{border:1px solid var(--line);background:var(--panel);border-radius:12px;width:30px;font-size:16px;color:var(--muted)}
-.weekbar .wk:hover{background:#F8F5EE;color:var(--ink)}
+.weekbar .wk:hover{background:var(--hover2);color:var(--ink)}
 .chips{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:6px;min-width:0}
 .chip{border:1px solid transparent;background:var(--panel);border-radius:12px;padding:6px 4px 5px;display:flex;flex-direction:column;align-items:center;gap:1px;box-shadow:var(--shadow);transition:transform .12s,background .12s;min-width:0}
 .chip:hover{transform:translateY(-1px)}
@@ -86,11 +142,11 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
 .chip .dn{font-size:17px;font-weight:700;line-height:1.1}
 .chip .dots{display:flex;gap:3px;height:6px;margin-top:3px}
 .chip .dots i{width:6px;height:6px;border-radius:50%;display:block}
-.chip.sel{background:var(--ink);color:#fff}
-.chip.sel .wd{color:#B9BDCC}
-.chip.istoday:not(.sel) .dn{color:#E5484D}
-.chip.drop{border-color:#3B82F6;background:#EAF2FF;transform:scale(1.04)}
-.chip.sel.drop{background:#2B3350}
+.chip.sel{background:var(--fill);color:var(--fill-fg)}
+.chip.sel .wd{color:var(--fill-sub)}
+.chip.istoday:not(.sel) .dn{color:var(--red)}
+.chip.drop{border-color:var(--focus);background:var(--drop-bg);transform:scale(1.04)}
+.chip.sel.drop{background:var(--drop-sel);color:#fff}
 
 /* ---------- Grid ---------- */
 .gridpanel{flex:1;min-height:0;background:var(--panel);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;display:flex}
@@ -101,7 +157,7 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
 .track{flex:1;position:relative;min-width:0;border-bottom:1px solid var(--line);
   background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(var(--line2) 1px,transparent 1px);
   background-size:100% var(--hour),100% var(--hour);background-position:0 0,0 calc(var(--hour)/2)}
-.empty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:#B3AD9F;font-size:14px;text-align:center;padding:0 20px;z-index:0}
+.empty{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;color:var(--faint);font-size:14px;text-align:center;padding:0 20px;z-index:0}
 .empty div{max-width:300px;line-height:1.5}
 .now{position:absolute;left:-6px;right:0;height:0;border-top:2px solid var(--red);z-index:15;pointer-events:none}
 .now::before{content:'';position:absolute;left:0;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--red)}
@@ -140,7 +196,7 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
   font-size:12px;font-weight:600;padding:4px 10px;color:var(--ink)}
 
 /* ---------- Arraste físico ---------- */
-.tcard.lifted{opacity:.4;transform:none!important;box-shadow:none;outline:2px dashed rgba(30,34,48,.28);outline-offset:-3px}
+.tcard.lifted{opacity:.4;transform:none!important;box-shadow:none;outline:2px dashed var(--lift);outline-offset:-3px}
 .dg{position:fixed;left:0;top:0;z-index:1000;pointer-events:none;border-radius:12px;background:var(--c);display:flex;flex-direction:column;justify-content:center;
   padding:0 14px;overflow:hidden;will-change:transform;transform-origin:50% 25%;
   box-shadow:0 22px 44px rgba(30,34,48,.34),0 6px 12px rgba(30,34,48,.22),inset 0 0 0 1px rgba(0,0,0,.08);
@@ -158,52 +214,49 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
 .preview{transition:top .09s ease-out,height .12s ease-out,box-shadow .15s}
 .preview.stuck{border-style:solid;box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 28%,transparent)}
 .guide{position:absolute;left:-6px;right:0;height:0;border-top:2px solid var(--c,#1E2230);opacity:.55;z-index:24;pointer-events:none;display:none}
-.tbubble{position:absolute;right:6px;transform:translateY(-50%);background:var(--ink);color:#fff;font-size:11.5px;font-weight:600;padding:3px 7px;border-radius:7px;
+.tbubble{position:absolute;right:6px;transform:translateY(-50%);background:var(--fill);color:var(--fill-fg);font-size:11.5px;font-weight:600;padding:3px 7px;border-radius:7px;
   z-index:6;display:none;white-space:nowrap;pointer-events:none;box-shadow:0 4px 10px rgba(30,34,48,.25)}
 .ev.dragging{transform:scale(1.015);transition:top .09s ease-out,height .09s ease-out,box-shadow .15s,transform .15s}
 @keyframes evpop{0%{transform:scale(.95);opacity:.5}60%{transform:scale(1.02);opacity:1}100%{transform:none}}
 .ev.pop{animation:evpop .3s cubic-bezier(.2,.9,.3,1.2)}
 
 .checks{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
-.rmenu{position:fixed;z-index:2500;background:#fff;color:var(--ink);border-radius:12px;box-shadow:0 14px 34px rgba(30,34,48,.28),0 0 0 1px rgba(0,0,0,.05);
+.rmenu{position:fixed;z-index:2500;background:var(--panel2);color:var(--ink);border-radius:12px;box-shadow:0 14px 34px rgba(30,34,48,.28),0 0 0 1px rgba(0,0,0,.05);
   padding:12px 14px;width:270px;display:flex;flex-direction:column;gap:10px;font-size:13.5px;animation:pop .15s}
 .rmenu .rm-t{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ---------- Modal / toast ---------- */
-.overlay{position:fixed;inset:0;background:rgba(30,34,48,.42);backdrop-filter:blur(2px);display:grid;place-items:center;z-index:2000;padding:16px;animation:fade .15s}
-.modal{background:#fff;border-radius:18px;padding:22px;width:min(440px,100%);max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(30,34,48,.3);animation:pop .18s}
+.overlay{position:fixed;inset:0;background:var(--ov);backdrop-filter:blur(2px);display:grid;place-items:center;z-index:2000;padding:16px;animation:fade .15s}
+.modal{background:var(--panel2);border-radius:18px;padding:22px;width:min(440px,100%);max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(30,34,48,.3);animation:pop .18s}
 .modal h2{margin:0 0 14px;font-size:20px;letter-spacing:-.01em}
 .field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
 .field>label,.field>.lbl{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
-.field input[type=text],.field input[type=time],.field input[type=number]{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff;width:100%}
-.field input:focus{border-color:#3B82F6;outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+.field input[type=text],.field input[type=time],.field input[type=number]{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--input);width:100%}
+.field input:focus{border-color:var(--focus);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .check{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}
-.check input{width:18px;height:18px;accent-color:#1E2230}
+.check input{width:18px;height:18px;accent-color:var(--fill)}
 .swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .sw{width:28px;height:28px;border-radius:50%;border:0;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);padding:0}
-.sw.sel{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink)}
-.swatches input[type=color]{width:34px;height:30px;border:1px solid var(--line);border-radius:8px;padding:0;background:#fff;cursor:pointer}
+.sw.sel{box-shadow:0 0 0 2px var(--panel2),0 0 0 4px var(--ink)}
+.swatches input[type=color]{width:34px;height:30px;border:1px solid var(--line);border-radius:8px;padding:0;background:var(--input);cursor:pointer}
 .emojis{display:flex;flex-wrap:wrap;gap:4px}
-.emojis button{border:1px solid transparent;background:#F6F3EC;border-radius:8px;width:34px;height:34px;font-size:17px;padding:0}
+.emojis button{border:1px solid transparent;background:var(--chipbg);border-radius:8px;width:34px;height:34px;font-size:17px;padding:0}
 .emojis button:hover{border-color:var(--ink)}
 .icon-row{display:flex;gap:10px;align-items:center}
 .icon-row input{width:64px!important;text-align:center;font-size:20px}
 .mfoot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;align-items:center}
 .mfoot .sp{flex:1}
-.err{color:#B42318;font-size:12.5px;margin:-4px 0 10px;min-height:0}
+.err{color:var(--dng);font-size:12.5px;margin:-4px 0 10px;min-height:0}
 .days{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
 .days label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:9px 10px;cursor:pointer}
-.days label:has(input:checked){background:#F1EEE6;border-color:#CFC8B7}
+.days label:has(input:checked){background:var(--daysel);border-color:var(--daysel-line)}
 .days small{color:var(--muted)}
 .quick{display:flex;gap:6px;margin-bottom:6px}
 .note{color:var(--muted);font-size:12.5px;line-height:1.45;margin:6px 0 0}
 
 #toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:3000;max-width:min(380px,calc(100vw - 36px))}
-.toast{background:var(--ink);color:#fff;border-radius:12px;padding:11px 14px;box-shadow:0 12px 30px rgba(30,34,48,.35);font-size:13.5px;animation:pop .2s;display:flex;gap:10px;align-items:flex-start}
-.toast.rem{background:#fff;color:var(--ink);border-left:6px solid var(--c);padding:14px 14px 14px 14px}
-.toast.rem b{display:block;font-size:15px;margin-bottom:2px}
-.toast.rem span{color:var(--muted)}
+.toast{background:var(--toast-bg);color:var(--toast-fg);border-radius:12px;padding:11px 14px;box-shadow:0 12px 30px rgba(30,34,48,.35);font-size:13.5px;animation:pop .2s;display:flex;gap:10px;align-items:flex-start}
 .toast .x{margin-left:auto;border:0;background:transparent;color:inherit;opacity:.6;font-size:18px;line-height:1;padding:0 2px}
 .toast .x:hover{opacity:1}
 @keyframes fade{from{opacity:0}to{opacity:1}}
@@ -212,14 +265,56 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
 @media (max-width:860px){
   body{overflow:auto;height:auto}
   main{flex-direction:column;padding:0 12px 12px}
-  .side{width:auto;overflow:visible}
+  .side,body.side-off .side{width:auto;overflow:visible;align-self:stretch;max-height:none}
+  body.side-off .side-rail{flex-direction:row;justify-content:center;padding:10px}
+  .side-rail .rail-tx{writing-mode:horizontal-tb;transform:none}
   .lib{display:grid;grid-template-columns:repeat(2,1fr)}
   .add-task{grid-column:1/-1}
   .gridpanel{height:75vh;flex:none}
   .top{padding:14px 12px 10px}
   .chip .dn{font-size:15px}
 }
+/* ---------- Reminder alerts: big, in the block color ---------- */
+#ralerts{position:fixed;top:14px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:10px;z-index:3100;width:min(540px,calc(100vw - 24px))}
+.rem-alert{--c:#6366F1;--fg:#fff;display:flex;align-items:center;gap:14px;padding:16px 14px 16px 16px;border-radius:18px;background:var(--c);color:var(--fg);
+  box-shadow:0 18px 44px rgba(30,34,48,.38),inset 0 0 0 3px rgba(255,255,255,.85);
+  animation:raDrop .4s cubic-bezier(.2,1.25,.3,1),raGlow 1.3s ease-out .4s 6}
+.rem-alert .ra-ic{flex:none;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(255,255,255,.28)}
+.rem-alert .ra-tx{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
+.rem-alert .ra-tx b{font-size:18px;line-height:1.2;font-weight:700;letter-spacing:-.01em;overflow-wrap:anywhere}
+.rem-alert .ra-tx span{font-size:14px;opacity:.9}
+.rem-alert .ra-x{flex:none;width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.28);color:inherit;font-size:22px;line-height:1;cursor:pointer}
+.rem-alert .ra-x:hover{background:rgba(255,255,255,.5)}
+@keyframes raDrop{from{opacity:0;transform:translateY(-24px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes raGlow{0%{box-shadow:0 18px 44px rgba(30,34,48,.38),inset 0 0 0 3px rgba(255,255,255,.85),0 0 0 0 var(--c)}100%{box-shadow:0 18px 44px rgba(30,34,48,.38),inset 0 0 0 3px rgba(255,255,255,.85),0 0 0 22px transparent}}
+/* ---------- Night-mode switch ---------- */
+.pref .lbl{display:inline-flex;align-items:center;gap:7px}
+.pref .lbl svg{flex:none;color:var(--muted)}
+.switch{position:relative;flex:none;width:40px;height:23px;padding:0;border-radius:999px;border:1px solid var(--line3);background:var(--hover);transition:background .2s,border-color .2s}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.switch[aria-checked="true"]{background:var(--fill);border-color:var(--fill)}
+.switch[aria-checked="true"]::after{transform:translateX(17px);background:var(--fill-fg)}
+@media (prefers-reduced-motion:no-preference){
+  html.theme-fade *{transition:background-color .28s ease,color .28s ease,border-color .28s ease,box-shadow .28s ease!important}
+}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ---------- Paste schedule ---------- */
+.modal.wide{width:min(560px,100%)}
+.field textarea{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--input);width:100%;min-height:128px;resize:vertical;font:inherit;font-size:13px;line-height:1.5;color:inherit}
+.field textarea:focus{border-color:var(--focus);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.18)}
+.pday{color:var(--muted);font-size:12.5px;margin:-8px 0 12px}
+.plist{display:flex;flex-direction:column;gap:5px;max-height:228px;overflow:auto;margin:0 0 10px}
+.plist:empty{display:none}
+.prow{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:9px;background:var(--c,transparent);font-size:13px;min-width:0}
+.prow .pi{flex:none}
+.prow b{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .pt{margin-left:auto;flex:none;font-variant-numeric:tabular-nums;opacity:.85;padding-left:6px}
+.prow em{font-style:normal;font-size:11px;font-weight:700;padding:1px 6px;border-radius:6px;background:rgba(0,0,0,.15);flex:none}
+.prow.bad{background:transparent;border:1px dashed var(--line3);color:var(--muted)}
+.prow.bad .pr{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow.bad em{background:var(--hover);color:var(--ink)}
+.psum{font-size:12.5px;color:var(--muted);min-height:18px}
+.toast .tundo{margin-left:auto;border:0;background:transparent;color:inherit;font-weight:700;text-decoration:underline;padding:0 2px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -235,40 +330,48 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
     <button id="nextDay" data-i18n-aria="nextDay" data-i18n-title="nextDayT" aria-label="Next day" title="Next day (→)">›</button>
     <input type="date" id="datePick" data-i18n-aria="pickDate" aria-label="Pick a date">
   </div>
-  <div class="tools">
-    <button class="btn" id="copyDay" data-i18n="copyDay">Copy day to…</button>
-    <button class="btn danger" id="clearDay" data-i18n="clearDay">Clear day</button>
-    <div class="seg" role="group" data-i18n-aria="timeFmt" aria-label="Time format"><button id="f12">12h</button><button id="f24">24h</button></div>
-    <div class="seg" role="group" data-i18n-aria="zoomBars" aria-label="Block zoom"><button id="zOut" data-i18n-title="zoomOut" data-i18n-aria="zoomOut" title="Make blocks smaller" aria-label="Make blocks smaller">−</button><button id="zLbl" data-i18n-title="zoomReset" title="Back to the size that fits the screen" style="min-width:52px">100%</button><button id="zIn" data-i18n-title="zoomIn" data-i18n-aria="zoomIn" title="Make blocks bigger" aria-label="Make blocks bigger">+</button></div>
-    <div class="seg" role="group" data-i18n-aria="language" aria-label="Language"><button id="lang-en" title="English" aria-label="English">EN</button><button id="lang-es" title="Español" aria-label="Español">ES</button><button id="lang-pt" title="Português" aria-label="Português">PT</button></div>
-  </div>
 </header>
 
 <main>
-  <aside class="side">
-    <section>
-      <h3 data-i18n="yourTasks">Your tasks</h3>
-      <p class="hint" data-i18n="libHint"></p>
-      <div class="lib" id="lib"></div>
-    </section>
-    <section class="panel-sec">
-      <h3 data-i18n="reminders">Reminders</h3>
-      <p class="status" id="notifStatus"></p>
-      <div class="row">
-        <button class="btn sm" id="notifBtn" data-i18n="enableNotif">Enable notifications</button>
-        <button class="btn sm" id="notifTest" data-i18n="test">Test</button>
-      </div>
-      <p class="note" data-i18n="remNote"></p>
-    </section>
-    <section class="panel-sec">
-      <h3 data-i18n="data">Data</h3>
-      <p class="status" id="storeStatus"></p>
-      <div class="row">
-        <button class="btn sm" id="exportBtn" data-i18n="exportBackup">Export backup</button>
-        <button class="btn sm" id="importBtn" data-i18n="importBackup">Import</button>
-        <input type="file" id="importFile" accept="application/json,.json" hidden>
-      </div>
-    </section>
+  <aside class="side" id="side">
+    <div class="side-full">
+      <section>
+        <div class="sec-head">
+          <h3 data-i18n="yourTasks">Your tasks</h3>
+          <button class="ib" id="sideHide" type="button" aria-expanded="true" aria-controls="sideBody" data-i18n-title="hideSide" data-i18n-aria="hideSide" title="Hide your tasks" aria-label="Hide your tasks"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m11 17-5-5 5-5"/><path d="m18 17-5-5 5-5"/></svg></button>
+        </div>
+        <div id="sideBody">
+          <div class="lib" id="lib"></div>
+        </div>
+      </section>
+      <section class="set-sec">
+        <button class="acc" id="setBtn" type="button" aria-expanded="false" aria-controls="setBody"><span data-i18n="settings">Settings</span><i class="alert-dot" id="setDot"></i><svg class="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="set-body" id="setBody" hidden>
+          <div class="pref"><span class="lbl"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg><span data-i18n="nightMode">Night mode</span></span>
+            <button class="switch" id="nightSw" type="button" role="switch" aria-checked="false" data-i18n-aria="nightMode" aria-label="Night mode"></button></div>
+          <div class="pref"><span class="lbl" data-i18n="language">Language</span>
+            <div class="seg" role="group" data-i18n-aria="language" aria-label="Language"><button id="lang-en" title="English" aria-label="English">EN</button><button id="lang-es" title="Español" aria-label="Español">ES</button><button id="lang-pt" title="Português" aria-label="Português">PT</button></div></div>
+          <div class="pref"><span class="lbl" data-i18n="timeFmt">Time format</span>
+            <div class="seg" role="group" data-i18n-aria="timeFmt" aria-label="Time format"><button id="f12">12h</button><button id="f24">24h</button></div></div>
+          <div class="panel-sec">
+            <div class="sh"><h4 data-i18n="reminders">Reminders</h4><span class="status" id="notifStatus"></span></div>
+            <div class="row">
+              <button class="btn sm" id="notifBtn" data-i18n="enableNotif">Enable notifications</button>
+              <button class="btn sm" id="notifTest" data-i18n="test">Test</button>
+            </div>
+          </div>
+          <div class="panel-sec">
+            <div class="sh"><h4 data-i18n="data">Data</h4><span class="status" id="storeStatus"></span></div>
+            <div class="row">
+              <button class="btn sm" id="exportBtn" data-i18n="exportBackup">Export backup</button>
+              <button class="btn sm" id="importBtn" data-i18n="importBackup">Import</button>
+              <input type="file" id="importFile" accept="application/json,.json" hidden>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <button class="side-rail" id="sideShow" type="button" aria-expanded="false" aria-controls="sideBody" data-i18n-title="showSide" data-i18n-aria="showSide" title="Show your tasks" aria-label="Show your tasks"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg><span class="rail-tx" data-i18n="yourTasks">Your tasks</span><i class="alert-dot" id="railDot"></i></button>
   </aside>
 
   <div class="right">
@@ -276,6 +379,14 @@ body.is-resizing,body.is-resizing *{cursor:ns-resize!important;user-select:none!
       <button class="wk" id="prevWeek" data-i18n-aria="prevWeek" data-i18n-title="prevWeek" aria-label="Previous week" title="Previous week">«</button>
       <div class="chips" id="chips"></div>
       <button class="wk" id="nextWeek" data-i18n-aria="nextWeek" data-i18n-title="nextWeek" aria-label="Next week" title="Next week">»</button>
+    </div>
+    <div class="daybar">
+      <div class="dl">
+        <button class="btn sm" id="pasteDay" data-i18n="pasteBtn">Paste schedule</button>
+        <button class="btn sm" id="copyDay" data-i18n="copyDay">Copy day to…</button>
+        <button class="btn sm danger" id="clearDay" data-i18n="clearDay">Clear day</button>
+      </div>
+      <div class="seg" role="group" data-i18n-aria="zoomBars" aria-label="Block zoom"><button id="zOut" data-i18n-title="zoomOut" data-i18n-aria="zoomOut" title="Make blocks smaller" aria-label="Make blocks smaller">−</button><button id="zLbl" data-i18n-title="zoomReset" title="Back to the size that fits the screen" style="min-width:52px">100%</button><button id="zIn" data-i18n-title="zoomIn" data-i18n-aria="zoomIn" title="Make blocks bigger" aria-label="Make blocks bigger">+</button></div>
     </div>
     <div class="gridpanel">
       <div class="scroll" id="scrollEl">
@@ -336,6 +447,55 @@ function textOn(hex) {
   const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
   return (r*299 + g*587 + b*114)/1000 >= 128 ? '#1B1D26' : '#FFFFFF';
 }
+/* ---- Night mode: same hues as the light palette, but with calmer lightness/saturation (OKLCH) ---- */
+const _lin = c => c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+const _gam = c => { c = Math.max(0, Math.min(1, c)); return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1 / 2.4) - 0.055; };
+const _hex = (r, g, b) => '#' + [r, g, b].map(v => Math.round(_gam(v) * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+const _toneCache = {};
+function tone(hex) {
+  if (!/^#[0-9a-f]{6}$/i.test(String(hex))) return hex;
+  const key = hex.toLowerCase();
+  if (_toneCache[key]) return _toneCache[key];
+  const R = _lin(parseInt(key.slice(1, 3), 16) / 255), G = _lin(parseInt(key.slice(3, 5), 16) / 255), B = _lin(parseInt(key.slice(5, 7), 16) / 255);
+  const l = Math.cbrt(0.4122214708 * R + 0.5363325363 * G + 0.0514459929 * B);
+  const m = Math.cbrt(0.2119034982 * R + 0.6806995451 * G + 0.1073969566 * B);
+  const s = Math.cbrt(0.0883024619 * R + 0.2817188376 * G + 0.6299787005 * B);
+  const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
+  const a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+  const b = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+  const h = Math.atan2(b, a);
+  const L2 = Math.min(0.74, Math.max(0.58, 0.67 + 0.22 * (L - 0.68)));
+  let C2 = Math.hypot(a, b) * 0.80, out = hex;
+  for (let i = 0; i < 40; i++) {
+    const A = C2 * Math.cos(h), Bb = C2 * Math.sin(h);
+    const l3 = Math.pow(L2 + 0.3963377774 * A + 0.2158037573 * Bb, 3);
+    const m3 = Math.pow(L2 - 0.1055613458 * A - 0.0638541728 * Bb, 3);
+    const s3 = Math.pow(L2 - 0.0894841775 * A - 1.2914855480 * Bb, 3);
+    const r = 4.0767416621 * l3 - 3.3077115913 * m3 + 0.2309699292 * s3;
+    const g = -1.2684380046 * l3 + 2.6097574011 * m3 - 0.3413193965 * s3;
+    const bl = -0.0041960863 * l3 - 0.7034186147 * m3 + 1.7076147010 * s3;
+    out = _hex(r, g, bl);
+    if ([r, g, bl].every(v => v >= -0.001 && v <= 1.001)) break;
+    C2 *= 0.94;
+  }
+  return (_toneCache[key] = out);
+}
+function _relLum(hex) {
+  const h = hex.replace('#', '');
+  return 0.2126 * _lin(parseInt(h.slice(0, 2), 16) / 255) + 0.7152 * _lin(parseInt(h.slice(2, 4), 16) / 255) + 0.0722 * _lin(parseInt(h.slice(4, 6), 16) / 255);
+}
+function textOnTone(bg) {
+  const y = _relLum(bg), dark = '#14161C', light = '#F2F0EA';
+  const cd = (y + 0.05) / (_relLum(dark) + 0.05), cl = (_relLum(light) + 0.05) / (y + 0.05);
+  return cd >= cl ? dark : light;
+}
+const isDark = () => !!(state && state.settings && state.settings.dark);
+const shade = hex => isDark() ? tone(hex) : hex;
+function blockStyle(hex) {
+  if (!isDark()) return `--c:${hex};color:${textOn(hex)}`;
+  const c = tone(hex);
+  return `--c:${c};color:${textOnTone(c)}`;
+}
 const BELL = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
 const PENCIL = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 
@@ -349,12 +509,21 @@ const I18N = {
     prevDay: 'Previous day', prevDayT: 'Previous day (←)', nextDay: 'Next day', nextDayT: 'Next day (→)',
     today: 'Today', pickDate: 'Pick a date',
     copyDay: 'Copy day to…', clearDay: 'Clear day',
+    pasteBtn: 'Paste schedule', pasteTitle: 'Paste schedule', pastePh: 'Chat+Email  09:00 AM  11:00 AM\nBreak  12:00 PM  12:15 PM\nLunch  02:00 PM  03:00 PM',
+    pasteReplace: 'Replace the blocks already on this day ({n})', pasteGo: 'Fill the grid',
+    pasteNone: 'No times found. Each line needs a name plus a start and an end time.',
+    pasteSumOk: 'Ready: {n}', pasteSumSkip: 'Skipped: {n}', pasteSumNew: 'New tasks: {k}', pasteNew: 'new task', pasteClip: 'trimmed',
+    pErrTime: "Can't read the times", pErrOrder: 'End is not after start', pErrOut: 'Outside {a}–{b}', pErrShort: 'Shorter than {n} min',
+    pErrName: 'No task name', pErrOver: 'Overlaps another pasted line', pErrOverOld: 'Overlaps a block already there',
+    pasted: 'Added {n}', undo: 'Undo', undone: 'Undone',
+    nightMode: 'Night mode',
     timeFmt: 'Time format', zoomBars: 'Block zoom', zoomOut: 'Make blocks smaller', zoomIn: 'Make blocks bigger', zoomReset: 'Back to the size that fits the screen',
     language: 'Language',
-    yourTasks: 'Your tasks',
-    libHint: 'Press and drag onto the grid, then release at the time you want. If you drop it between other blocks, the ones below adjust and snap to the end of the new one. Or click to place it right after the last task of the day.',
+    yourTasks: 'Your tasks', settings: 'Settings', hideSide: 'Hide your tasks', showSide: 'Show your tasks',
+    storeOk: 'Saved in this browser', storeBad: 'Not saving here (preview)',
+    notifNone: 'Not supported', notifOn: 'On', notifDenied: 'Blocked by browser', notifOff: 'Not enabled',
+    errNoFitTop: "Doesn't fit: after readjusting the blocks above, the first one would start before {t}.",
     reminders: 'Reminders', enableNotif: 'Enable notifications', test: 'Test',
-    remNote: 'Each block can notify you when it starts and 10 min before it ends. Click the bell on a block to choose. Keep this tab open.',
     data: 'Data', exportBackup: 'Export backup', importBackup: 'Import',
     prevWeek: 'Previous week', nextWeek: 'Next week',
     blockOne: 'block', blockMany: 'blocks', planned: '{dur} planned', nothingPlanned: 'nothing planned yet', todayTag: 'today',
@@ -364,12 +533,6 @@ const I18N = {
     evAria: '{name}, {s} to {f}{rem}. Press Enter to edit.', withRem: ', with reminder',
     bellClick: ' Click to adjust.', bellAria: 'Block reminders',
     emptyDay: 'Free day. Drag a task from the left into the grid and drop it at the time you want.',
-    storeOk: 'Saved automatically in this browser.',
-    storeBad: 'Saving is unavailable here (preview mode). Open the .html file in your browser to save. Export works as a backup.',
-    notifNone: "This browser doesn't support notifications. Alerts only show up inside the page.",
-    notifOn: 'Notifications on. Alerts for the start and end of blocks.',
-    notifDenied: 'Blocked by the browser. Allow them in the site settings. Meanwhile, alerts show up in the page.',
-    notifOff: 'Not enabled yet. Click enable to get system alerts.',
     noRoomDay: 'No room on this day. Free up a slot and try again.',
     addedOn: 'Added on {day}',
     remWhenStart: 'when it starts', remBeforeEnd: '{n} min before it ends', remNotifies: 'Notifies {list}.', remAnd: ' and ', noRem: 'No reminders.',
@@ -397,8 +560,9 @@ const I18N = {
     copy: 'Copy', copyTitle: 'Copy this day to…',
     backupExported: 'Backup exported', exportFail: "Couldn't export in this environment.", backupImported: 'Backup imported', invalidFile: 'Invalid file.',
     permFail: "This environment doesn't allow asking for permission.",
-    testTitle: '🔔 Reminder test', testBody: 'This is how block start and end alerts look.',
-    startsNow: '{icon} {name} starts now', endsIn: '{icon} {name} ends in {n} min', endsAt: 'Ends at {e} ({s} – {f})',
+    testTitle: 'Reminder test', testBody: 'This is how block start and end alerts look.',
+    testWait: 'Test alert in 5 seconds. Switch to another tab or app to see how it looks.',
+    startsNow: '{name} starts now', endsIn: '{name} ends in {n} min', endsAt: 'Ends at {e} ({s} – {f})', pause10: '10 minutes pause',
     close: 'Close'
   },
   es: {
@@ -407,12 +571,21 @@ const I18N = {
     prevDay: 'Día anterior', prevDayT: 'Día anterior (←)', nextDay: 'Día siguiente', nextDayT: 'Día siguiente (→)',
     today: 'Hoy', pickDate: 'Elegir fecha',
     copyDay: 'Copiar día a…', clearDay: 'Limpiar día',
+    pasteBtn: 'Pegar horario', pasteTitle: 'Pegar horario', pastePh: 'Chat+Email  09:00 AM  11:00 AM\nBreak  12:00 PM  12:15 PM\nLunch  02:00 PM  03:00 PM',
+    pasteReplace: 'Reemplazar los bloques que ya hay en este día ({n})', pasteGo: 'Rellenar la grilla',
+    pasteNone: 'No se encontraron horarios. Cada línea necesita un nombre y una hora de inicio y de fin.',
+    pasteSumOk: 'Listos: {n}', pasteSumSkip: 'Omitidos: {n}', pasteSumNew: 'Tareas nuevas: {k}', pasteNew: 'tarea nueva', pasteClip: 'recortado',
+    pErrTime: 'No se entienden los horarios', pErrOrder: 'El fin no es posterior al inicio', pErrOut: 'Fuera de {a}–{b}', pErrShort: 'Menos de {n} min',
+    pErrName: 'Sin nombre de tarea', pErrOver: 'Se superpone con otra línea pegada', pErrOverOld: 'Se superpone con un bloque existente',
+    pasted: 'Añadidos: {n}', undo: 'Deshacer', undone: 'Deshecho',
+    nightMode: 'Modo noche',
     timeFmt: 'Formato de hora', zoomBars: 'Zoom de los bloques', zoomOut: 'Hacer los bloques más pequeños', zoomIn: 'Hacer los bloques más grandes', zoomReset: 'Volver al tamaño que cabe en la pantalla',
     language: 'Idioma',
-    yourTasks: 'Tus tareas',
-    libHint: 'Mantén pulsado y arrastra a la cuadrícula; suelta en la hora que quieras. Si sueltas entre otros bloques, los de abajo se ajustan y se pegan al final del nuevo. O haz clic para colocarla justo después de la última tarea del día.',
+    yourTasks: 'Tus tareas', settings: 'Ajustes', hideSide: 'Ocultar tus tareas', showSide: 'Mostrar tus tareas',
+    storeOk: 'Guardado en este navegador', storeBad: 'Sin guardado aquí (vista previa)',
+    notifNone: 'No compatible', notifOn: 'Activas', notifDenied: 'Bloqueadas por el navegador', notifOff: 'Sin activar',
+    errNoFitTop: 'No cabe: al reajustar los bloques de arriba, el primero empezaría antes de las {t}.',
     reminders: 'Recordatorios', enableNotif: 'Activar notificaciones', test: 'Probar',
-    remNote: 'Cada bloque puede avisarte cuando empieza y 10 min antes de terminar. Haz clic en la campanita del bloque para elegir. Mantén esta pestaña abierta.',
     data: 'Datos', exportBackup: 'Exportar copia', importBackup: 'Importar',
     prevWeek: 'Semana anterior', nextWeek: 'Semana siguiente',
     blockOne: 'bloque', blockMany: 'bloques', planned: '{dur} planificadas', nothingPlanned: 'nada planificado aún', todayTag: 'hoy',
@@ -422,12 +595,6 @@ const I18N = {
     evAria: '{name}, de {s} a {f}{rem}. Pulsa Enter para editar.', withRem: ', con recordatorio',
     bellClick: ' Haz clic para ajustar.', bellAria: 'Recordatorios del bloque',
     emptyDay: 'Día libre. Arrastra una tarea de la izquierda hasta aquí y suéltala en la hora que quieras.',
-    storeOk: 'Guardado automáticamente en este navegador.',
-    storeBad: 'Guardado no disponible aquí (modo vista previa). Abre el archivo .html en el navegador para guardar. Exportar sirve como copia de seguridad.',
-    notifNone: 'Este navegador no admite notificaciones. Los avisos aparecen solo dentro de la página.',
-    notifOn: 'Notificaciones activas. Avisos de inicio y de fin de los bloques.',
-    notifDenied: 'Bloqueadas por el navegador. Habilítalas en los ajustes del sitio. Mientras tanto, el aviso aparece en la página.',
-    notifOff: 'Aún no activadas. Haz clic en activar para recibir la alerta del sistema.',
     noRoomDay: 'No hay espacio ese día. Libera un horario e inténtalo de nuevo.',
     addedOn: 'Añadido el {day}',
     remWhenStart: 'cuando empieza', remBeforeEnd: '{n} min antes de terminar', remNotifies: 'Avisa {list}.', remAnd: ' y ', noRem: 'Sin recordatorios.',
@@ -455,8 +622,9 @@ const I18N = {
     copy: 'Copiar', copyTitle: 'Copiar este día a…',
     backupExported: 'Copia exportada', exportFail: 'No se pudo exportar en este entorno.', backupImported: 'Copia importada', invalidFile: 'Archivo no válido.',
     permFail: 'Este entorno no permite pedir permiso.',
-    testTitle: '🔔 Prueba de recordatorio', testBody: 'Así aparecen los avisos de inicio y de fin de los bloques.',
-    startsNow: '{icon} {name} empieza ahora', endsIn: '{icon} {name} termina en {n} min', endsAt: 'Termina a las {e} ({s} – {f})',
+    testTitle: 'Prueba de recordatorio', testBody: 'Así aparecen los avisos de inicio y de fin de los bloques.',
+    testWait: 'Aviso de prueba en 5 segundos. Cambia a otra pestaña o aplicación para ver cómo se ve.',
+    startsNow: '{name} empieza ahora', endsIn: '{name} termina en {n} min', endsAt: 'Termina a las {e} ({s} – {f})', pause10: 'Pausa de 10 minutos',
     close: 'Cerrar'
   },
   pt: {
@@ -465,12 +633,21 @@ const I18N = {
     prevDay: 'Dia anterior', prevDayT: 'Dia anterior (←)', nextDay: 'Próximo dia', nextDayT: 'Próximo dia (→)',
     today: 'Hoje', pickDate: 'Escolher data',
     copyDay: 'Copiar dia para…', clearDay: 'Limpar dia',
+    pasteBtn: 'Colar horário', pasteTitle: 'Colar horário', pastePh: 'Chat+Email  09:00 AM  11:00 AM\nBreak  12:00 PM  12:15 PM\nLunch  02:00 PM  03:00 PM',
+    pasteReplace: 'Substituir os blocos que já estão neste dia ({n})', pasteGo: 'Preencher a grade',
+    pasteNone: 'Nenhum horário encontrado. Cada linha precisa de um nome e de um horário de início e de fim.',
+    pasteSumOk: 'Prontos: {n}', pasteSumSkip: 'Ignorados: {n}', pasteSumNew: 'Tasks novas: {k}', pasteNew: 'task nova', pasteClip: 'cortado',
+    pErrTime: 'Não entendi os horários', pErrOrder: 'O fim não é depois do início', pErrOut: 'Fora de {a}–{b}', pErrShort: 'Menor que {n} min',
+    pErrName: 'Sem nome da task', pErrOver: 'Sobrepõe outra linha colada', pErrOverOld: 'Sobrepõe um bloco que já está lá',
+    pasted: 'Adicionados: {n}', undo: 'Desfazer', undone: 'Desfeito',
+    nightMode: 'Modo noturno',
     timeFmt: 'Formato de hora', zoomBars: 'Zoom das barras', zoomOut: 'Diminuir as barras', zoomIn: 'Aumentar as barras', zoomReset: 'Voltar ao tamanho que cabe na tela',
     language: 'Idioma',
-    yourTasks: 'Suas tasks',
-    libHint: 'Segure e arraste para a grade, solte no horário que quiser. Se soltar entre outros blocos, os de baixo se ajustam e colam no final do novo. Ou clique para encaixar logo depois da última task do dia.',
+    yourTasks: 'Suas tasks', settings: 'Configurações', hideSide: 'Ocultar suas tasks', showSide: 'Mostrar suas tasks',
+    storeOk: 'Salvo neste navegador', storeBad: 'Sem salvamento aqui (prévia)',
+    notifNone: 'Sem suporte', notifOn: 'Ativas', notifDenied: 'Bloqueadas pelo navegador', notifOff: 'Não ativadas',
+    errNoFitTop: 'Não cabe: reajustando os blocos de cima, o primeiro começaria antes das {t}.',
     reminders: 'Lembretes', enableNotif: 'Ativar notificações', test: 'Testar',
-    remNote: 'Cada bloco pode avisar quando começa e 10 min antes de acabar. Clique no sininho do bloco para escolher. Mantenha esta aba aberta.',
     data: 'Dados', exportBackup: 'Exportar backup', importBackup: 'Importar',
     prevWeek: 'Semana anterior', nextWeek: 'Próxima semana',
     blockOne: 'bloco', blockMany: 'blocos', planned: '{dur} planejadas', nothingPlanned: 'nada planejado ainda', todayTag: 'hoje',
@@ -480,12 +657,6 @@ const I18N = {
     evAria: '{name}, {s} a {f}{rem}. Enter para editar.', withRem: ', com lembrete',
     bellClick: ' Clique para ajustar.', bellAria: 'Lembretes do bloco',
     emptyDay: 'Dia livre. Arraste uma task da esquerda para cá e solte no horário desejado.',
-    storeOk: 'Salvo automaticamente neste navegador.',
-    storeBad: 'Salvamento indisponível aqui (modo prévia). Abra o arquivo .html no navegador para salvar. Exportar funciona como backup.',
-    notifNone: 'Este navegador não suporta notificações. Os avisos aparecem só dentro da página.',
-    notifOn: 'Notificações ativas. Avisos de início e de fim dos blocos.',
-    notifDenied: 'Bloqueadas pelo navegador. Libere nas configurações do site. Enquanto isso, o aviso aparece na página.',
-    notifOff: 'Ainda não ativadas. Clique em ativar para receber o alerta do sistema.',
     noRoomDay: 'Sem espaço nesse dia. Libere um horário e tente de novo.',
     addedOn: 'Adicionado em {day}',
     remWhenStart: 'quando começa', remBeforeEnd: '{n} min antes de acabar', remNotifies: 'Avisa {list}.', remAnd: ' e ', noRem: 'Sem lembretes.',
@@ -513,8 +684,9 @@ const I18N = {
     copy: 'Copiar', copyTitle: 'Copiar este dia para…',
     backupExported: 'Backup exportado', exportFail: 'Não foi possível exportar neste ambiente.', backupImported: 'Backup importado', invalidFile: 'Arquivo inválido.',
     permFail: 'Este ambiente não permite pedir permissão.',
-    testTitle: '🔔 Teste de lembrete', testBody: 'Assim aparecem os avisos de início e de fim dos blocos.',
-    startsNow: '{icon} {name} começa agora', endsIn: '{icon} {name} termina em {n} min', endsAt: 'Termina às {e} ({s} – {f})',
+    testTitle: 'Teste de lembrete', testBody: 'Assim aparecem os avisos de início e de fim dos blocos.',
+    testWait: 'Aviso de teste em 5 segundos. Troque para outra aba ou app para ver como fica.',
+    startsNow: '{name} começa agora', endsIn: '{name} termina em {n} min', endsAt: 'Termina às {e} ({s} – {f})', pause10: 'Pausa de 10 minutos',
     close: 'Fechar'
   }
 };
@@ -535,14 +707,14 @@ function defaultState() {
   return {
     templates: [
       { id: 't1', name: 'Chat+Email',            color: '#F59E0B', icon: '💬', dur: 60,  remindStart: true, remindEnd: true  },
-      { id: 't2', name: 'Case + Voice - Online', color: '#22C55E', icon: '🎧', dur: 60,  remindStart: true, remindEnd: true  },
+      { id: 't2', name: 'Case + Voice - Online', color: '#22C55E', icon: '🎧', dur: 60,  remindStart: true, remindEnd: false },
       { id: 't3', name: 'Break',                 color: '#38BDF8', icon: '☕', dur: 15,  remindStart: true, remindEnd: false },
       { id: 't4', name: 'Lunch',                 color: '#6366F1', icon: '🍽️', dur: 60,  remindStart: true, remindEnd: false }
     ],
-    version: 4,
+    version: 6,
     events: {},      // { 'YYYY-MM-DD': [ {id,tid,name,color,icon,start,end,remindStart,remindEnd} ] }
     fired: {},       // lembretes já disparados
-    settings: { h24: false, lang: 'en' }
+    settings: { h24: true, lang: 'en', dark: false }
   };
 }
 function load() {
@@ -558,7 +730,10 @@ function normalize(s) {
   s.templates = Array.isArray(s.templates) ? s.templates : d.templates;
   s.events = s.events && typeof s.events === 'object' ? s.events : {};
   s.fired = s.fired && typeof s.fired === 'object' ? s.fired : {};
-  s.settings = Object.assign({ h24: false, zi: 1, lang: 'en' }, s.settings || {});
+  s.settings = Object.assign({ h24: true, zi: 1, lang: 'en', sideOff: false, dark: false }, s.settings || {});
+  s.settings.sideOff = !!s.settings.sideOff;
+  s.settings.dark = s.settings.dark === true;
+  if (typeof s.settings.setOpen !== 'boolean') delete s.settings.setOpen;
   if (!LANGS.includes(s.settings.lang)) s.settings.lang = 'en';
   if (!Number.isInteger(s.settings.zi) || s.settings.zi < 0 || s.settings.zi >= ZLEVELS.length) s.settings.zi = 1;
   // a grade agora é 9h–21h: ajusta blocos antigos que ficavam fora dessa faixa
@@ -585,6 +760,16 @@ function normalize(s) {
       e.remindStart = true; e.remindEnd = t ? !!t.remindEnd : false; delete e.remind;
     }));
     s.version = 4;
+  }
+  // v5: formato 24h passa a ser o padrão (uma única vez; depois dá para voltar para 12h em Settings)
+  if (s.version < 5) { s.settings.h24 = true; s.version = 5; }
+  // v6: Case + Voice avisa só quando começa (sem o aviso de 10 min antes de acabar). Vale para o modelo e para os blocos de hoje em diante.
+  if (s.version < 6) {
+    const t2 = s.templates.find(t => t.id === 't2');
+    if (t2) t2.remindEnd = false;
+    const todayK = keyOf(new Date());
+    Object.keys(s.events).forEach(k => { if (k >= todayK) s.events[k].forEach(e => { if (e.tid === 't2') e.remindEnd = false; }); });
+    s.version = 6;
   }
   // limpa avisos antigos (> 3 dias)
   const cutoff = keyOf(addDays(new Date(), -3));
@@ -626,23 +811,28 @@ const fromInput = v => { const [h,m] = v.split(':').map(Number); return h*60 + m
 /* ================= Toasts ================= */
 function toast(msg, opts = {}) {
   const t = el('div', { class: 'toast' }, msg);
+  if (opts.undo) t.append(el('button', { class: 'tundo', type: 'button', onclick: () => { t.remove(); opts.undo(); } }, say('undo')));
   document.getElementById('toasts').append(t);
   setTimeout(() => t.remove(), opts.ms || 3200);
 }
-function reminderToast(title, body, color) {
-  const t = el('div', { class: 'toast rem', style: `--c:${color}` },
-    el('div', {}, el('b', {}, title), el('span', {}, body)),
-    el('button', { class: 'x', 'aria-label': say('close'), onclick: () => t.remove() }, '×'));
-  document.getElementById('toasts').append(t);
+// banner grande, na cor do bloco, no topo da página; fica até você fechar
+function reminderToast(title, body, color, emoji) {
+  let box = document.getElementById('ralerts');
+  if (!box) { box = el('div', { id: 'ralerts', role: 'alert', 'aria-live': 'assertive' }); document.body.append(box); }
+  const a = el('div', { class: 'rem-alert', style: `--c:${color};--fg:${textOn(color)}` },
+    el('div', { class: 'ra-ic' }, emoji || '🔔'),
+    el('div', { class: 'ra-tx' }, el('b', {}, title), el('span', {}, body)),
+    el('button', { class: 'ra-x', 'aria-label': say('close'), onclick: () => a.remove() }, '×'));
+  box.append(a);
 }
 
 /* ================= Modal ================= */
 let modalEl = null;
 function closeModal() { if (modalEl) { modalEl.remove(); modalEl = null; } }
-function openModal(title, form) {
+function openModal(title, form, cls) {
   closeModal();
   modalEl = el('div', { class: 'overlay', onmousedown: e => { if (e.target === modalEl) closeModal(); } },
-    el('div', { class: 'modal', role: 'dialog', 'aria-modal': 'true', 'aria-label': title }, el('h2', {}, title), form));
+    el('div', { class: 'modal' + (cls ? ' ' + cls : ''), role: 'dialog', 'aria-modal': 'true', 'aria-label': title }, el('h2', {}, title), form));
   document.body.append(modalEl);
   const f = modalEl.querySelector('input:not([type=checkbox]):not([type=color])'); if (f) { f.focus(); if (f.select && f.type === 'text') f.select(); }
 }
@@ -662,7 +852,7 @@ const guide = el('div', { class: 'guide' }), bubble = el('div', { class: 'tbubbl
 track.append(guide);
 function showGuide(min, color) {
   const y = (min - MIN_T) * PX_MIN + 'px';
-  guide.style.top = y; guide.style.setProperty('--c', color || '#1E2230'); guide.style.display = 'block';
+  guide.style.top = y; guide.style.setProperty('--c', color ? shade(color) : 'var(--ink)'); guide.style.display = 'block';
   bubble.style.top = y; bubble.textContent = fmt(min); bubble.style.display = 'block';
 }
 function hideGuide() { guide.style.display = 'none'; bubble.style.display = 'none'; }
@@ -695,7 +885,7 @@ function renderChips() {
   for (let i = 0; i < 7; i++) {
     const d = addDays(mon, i), k = keyOf(d), evs = state.events[k] || [];
     const dots = el('div', { class: 'dots' });
-    [...evs].sort((a,b) => a.start - b.start).slice(0, 6).forEach(e => dots.append(el('i', { style: `background:${e.color}` })));
+    [...evs].sort((a,b) => a.start - b.start).slice(0, 6).forEach(e => dots.append(el('i', { style: `background:${shade(e.color)}` })));
     box.append(el('button', {
       class: 'chip' + (k === curKey() ? ' sel' : '') + (k === todayK ? ' istoday' : ''),
       'data-date': k, onclick: () => setDate(d), title: dateFull(d)
@@ -708,7 +898,7 @@ function renderLibrary() {
   state.templates.forEach(t => {
     const card = el('div', {
       class: 'tcard', tabindex: '0', 'data-id': t.id,
-      style: `--c:${t.color};color:${textOn(t.color)}`, 'aria-label': say('cardAria', { name: t.name, dur: fmtDur(t.dur) })
+      style: blockStyle(t.color), 'aria-label': say('cardAria', { name: t.name, dur: fmtDur(t.dur) })
     },
       el('span', { class: 'ic' }, t.icon || '•'),
       el('span', { class: 'meta' }, el('b', {}, t.name), el('small', {}, `${fmtDur(t.dur)}${t.remindStart && t.remindEnd ? say('remBoth') : t.remindStart ? say('remS') : t.remindEnd ? say('remE') : ''}`)),
@@ -754,7 +944,7 @@ function buildEv(e, lay) {
     title: remSummary(e) + say('bellClick'), 'aria-haspopup': 'dialog', 'aria-label': say('bellAria'),
     onpointerdown: ev => ev.stopPropagation(),
     onclick: ev => { ev.stopPropagation(); openRMenu(bell, e.id); } });
-  const node = el('div', { class: 'ev', 'data-id': e.id, tabindex: '0', style: `--c:${e.color};color:${textOn(e.color)}` },
+  const node = el('div', { class: 'ev', 'data-id': e.id, tabindex: '0', style: blockStyle(e.color) },
     el('div', { class: 'h top' }),
     el('div', { class: 'l1' }, el('span', { class: 'ic' }, e.icon || ''), el('span', { class: 'nm' }, e.name), el('span', { class: 'tm' }), bell),
     el('div', { class: 'h bottom' }));
@@ -799,6 +989,7 @@ function renderStatus() {
   n.innerHTML = html;
   const b = $('#notifBtn');
   b.style.display = ('Notification' in window && Notification.permission === 'default') ? '' : 'none';
+  applySide();
 }
 
 /* ================= Navigation ================= */
@@ -849,9 +1040,8 @@ function updateZoomUI() {
 function setZoomIdx(i) {
   i = clamp(i, 0, ZLEVELS.length - 1);
   if (i === state.settings.zi) return;
-  const mid = MIN_T + (scrollEl.scrollTop + scrollEl.clientHeight / 2) / PX_MIN;   // mantém o horário do centro no lugar
   state.settings.zi = i; save(); fitGrid(); updateZoomUI();
-  scrollEl.scrollTop = Math.max(0, (mid - MIN_T) * PX_MIN - scrollEl.clientHeight / 2);
+  scrollEl.scrollTop = 0;   // o topo sempre fica no primeiro horário (9:00): dá para ver tudo sem rolar para cima
 }
 $('#zOut').onclick = () => setZoomIdx(state.settings.zi - 1);
 $('#zIn').onclick = () => setZoomIdx(state.settings.zi + 1);
@@ -866,7 +1056,7 @@ window.addEventListener('load', relayout);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
 if (window.ResizeObserver) {
   const ro = new ResizeObserver(relayout);
-  ro.observe(document.querySelector('header.top')); ro.observe(document.querySelector('.weekbar'));
+  ro.observe(document.querySelector('header.top')); ro.observe(document.querySelector('.weekbar')); ro.observe(document.querySelector('.daybar'));
 }
 
 /* ================= Event operations ================= */
@@ -1088,7 +1278,7 @@ function startLibDrag(pe, tid) {
     if (!res) { dropPrev(); hideGuide(); showMoves(null); setMode(false, fmtDur(dur)); return false; }
     showMoves(res.moves);
     const stuck = otherEvents(curKey(), null).some(e => e.end === res.start || e.start === res.end);
-    if (!prev) { prev = el('div', { class: 'preview', style: `--c:${t.color}` }); track.append(prev); }
+    if (!prev) { prev = el('div', { class: 'preview', style: `--c:${shade(t.color)}` }); track.append(prev); }
     prev.classList.toggle('stuck', stuck);
     prev.style.top = (res.start - MIN_T) * PX_MIN + 1 + 'px';
     prev.style.height = (res.end - res.start) * PX_MIN - 2 + 'px';
@@ -1127,7 +1317,7 @@ function startLibDrag(pe, tid) {
     last = e;
     if (!dragging && Math.hypot(e.clientX - sx, e.clientY - sy) > 5) {
       dragging = true;
-      ghost = el('div', { class: 'dg', style: `--c:${t.color};color:${textOn(t.color)};width:${cr.width}px;height:${cr.height}px;transform:translate3d(${pos.x}px,${pos.y}px,0)` },
+      ghost = el('div', { class: 'dg', style: `${blockStyle(t.color)};width:${cr.width}px;height:${cr.height}px;transform:translate3d(${pos.x}px,${pos.y}px,0)` },
         el('div', { class: 'l1' }, el('span', { class: 'ic' }, t.icon || ''), el('b', {}, t.name)),
         tm = el('small', {}, fmtDur(dur)));
       lastLabel = fmtDur(dur);
@@ -1166,6 +1356,58 @@ function startLibDrag(pe, tid) {
   document.addEventListener('pointercancel', cancel);
 }
 
+// Redimensionar uma borda: os blocos vizinhos acompanham e continuam colados.
+// Borda de baixo: se cresce, os de baixo que ficariam sobrepostos são empurrados em cascata; se encolhe, os que estavam colados sobem junto.
+// `after` = blocos abaixo (do mais perto ao mais longe). Devolve { id: {start,end} } ou null se não couber até o fim da grade.
+function planEnd(after, oldEnd, f) {
+  const moves = {};
+  if (f >= oldEnd) {
+    let cursor = f;
+    for (const x of after) {
+      const len = x.end - x.start;
+      if (x.start < cursor) { moves[x.id] = { start: cursor, end: cursor + len }; cursor += len; }
+      else cursor = Math.max(cursor, x.end);
+    }
+    return cursor > MAX_T ? null : moves;
+  }
+  const d = f - oldEnd; let cursor = oldEnd;
+  for (const x of after) {
+    if (x.start !== cursor) break;                 // um vão que você criou antes continua sendo um vão
+    moves[x.id] = { start: x.start + d, end: x.end + d }; cursor = x.end;
+  }
+  return moves;
+}
+// Borda de cima: espelho da de baixo. `before` = blocos acima (do mais perto ao mais longe).
+function planStart(before, oldStart, s) {
+  const moves = {};
+  if (s <= oldStart) {
+    let cursor = s;
+    for (const x of before) {
+      const len = x.end - x.start;
+      if (x.end > cursor) { moves[x.id] = { start: cursor - len, end: cursor }; cursor -= len; }
+      else cursor = Math.min(cursor, x.start);
+    }
+    return cursor < MIN_T ? null : moves;
+  }
+  const d = s - oldStart; let cursor = oldStart;
+  for (const x of before) {
+    if (x.end !== cursor) break;
+    moves[x.id] = { start: x.start + d, end: x.end + d }; cursor = x.start;
+  }
+  return moves;
+}
+// durante o arrasto: se a cascata não cabe, a borda para no último ponto em que cabe
+function resolveEnd(after, o, raw) {
+  let f = clamp(raw, o.s + MIN_DUR, MAX_T), mv = planEnd(after, o.e, f);
+  while (!mv && f > o.e) { f -= SNAP; mv = planEnd(after, o.e, f); }
+  return { f, mv: mv || {} };
+}
+function resolveStart(before, o, raw) {
+  let s = clamp(raw, MIN_T, o.e - MIN_DUR), mv = planStart(before, o.s, s);
+  while (!mv && s < o.s) { s += SNAP; mv = planStart(before, o.s, s); }
+  return { s, mv: mv || {} };
+}
+
 /* ================= Drag: mover / redimensionar blocos ================= */
 track.addEventListener('pointerdown', pe => {
   const node = pe.target.closest('.ev'); if (!node) return;
@@ -1199,8 +1441,10 @@ function startEvDrag(pe, node, mode) {
   const sy = pe.clientY, sx = pe.clientX, sScroll = scrollEl.scrollTop;
   const o = { s: e.start, e: e.end }, dur = o.e - o.s;
   const others = otherEvents(key, e.id);
-  const lowerB = Math.max(MIN_T, ...others.filter(x => x.end <= o.s).map(x => x.end));   // até onde a borda de cima pode subir
-  const upperB = Math.min(MAX_T, ...others.filter(x => x.start >= o.e).map(x => x.start)); // até onde a de baixo pode descer
+  const before = others.filter(x => x.end <= o.s).sort((a, b) => b.end - a.end);      // blocos acima
+  const after = others.filter(x => x.start >= o.e).sort((a, b) => a.start - b.start); // blocos abaixo
+  const lowerB = Math.max(MIN_T, ...before.map(x => x.end));     // ímãs só quando existe um vão (se está colado, os vizinhos acompanham)
+  const upperB = Math.min(MAX_T, ...after.map(x => x.start));
   let moved = false, last = pe, plan = null;
   const apply = () => {
     const dMin = ((last.clientY - sy) + (scrollEl.scrollTop - sScroll)) / PX_MIN;
@@ -1208,9 +1452,11 @@ function startEvDrag(pe, node, mode) {
       const r = planInsert(key, o.s + dMin, dur, e.id, false);
       if (r) { plan = r; e.start = r.start; e.end = r.end; showMoves(r.moves, e.id); }
     } else if (mode === 'top') {
-      e.start = clamp(snapEdge(o.s + dMin, [lowerB]), lowerB, o.e - MIN_DUR);
+      const r = resolveStart(before, o, snapEdge(o.s + dMin, lowerB < o.s ? [lowerB] : []));
+      e.start = r.s; plan = { moves: r.mv }; showMoves(r.mv, e.id);
     } else {
-      e.end = clamp(snapEdge(o.e + dMin, [upperB]), o.s + MIN_DUR, upperB);
+      const r = resolveEnd(after, o, snapEdge(o.e + dMin, upperB > o.e ? [upperB] : []));
+      e.end = r.f; plan = { moves: r.mv }; showMoves(r.mv, e.id);
     }
     placeEv(node, e);
     showGuide(mode === 'bottom' ? e.end : e.start, e.color);
@@ -1256,7 +1502,17 @@ function startEvDrag(pe, node, mode) {
 /* ================= Modals ================= */
 // Editar horário digitando: se o bloco crescer sobre os de baixo, eles são reajustados em cascata (colam no novo fim).
 function planEdit(key, id, s, f) {
+  const e = findEv(key, id);
   const list = otherEvents(key, id).sort((a, b) => a.start - b.start);
+  // mudou a duração e o bloco continua sobre o lugar antigo = ajuste de borda: os vizinhos acompanham e continuam colados
+  if (f - s !== e.end - e.start && s < e.end && f > e.start) {
+    const after = list.filter(x => x.start >= e.end);
+    const before = list.filter(x => x.end <= e.start).sort((a, b) => b.end - a.end);
+    const mE = planEnd(after, e.end, f); if (!mE) return { error: say('errNoFit', { t: fmt(MAX_T) }) };
+    const mS = planStart(before, e.start, s); if (!mS) return { error: say('errNoFitTop', { t: fmt(MIN_T) }) };
+    return { moves: { ...mE, ...mS } };
+  }
+  // mover o bloco (mesma duração ou outro lugar): empurra só o que ficaria sobreposto; o vão que sobra é seu
   const above = list.find(x => x.start < s && x.end > s);
   if (above) return { error: say('errConflict', { name: above.name, s: fmt(above.start), f: fmt(above.end) }) };
   const moves = {}; let cursor = f;
@@ -1399,6 +1655,146 @@ $('#copyDay').onclick = () => {
 };
 twoStep($('#clearDay'), 'clearDay', () => { state.events[curKey()] = []; save(); renderHeader(); renderChips(); renderGrid(); });
 
+/* ================= Paste schedule ================= */
+const nameKey = x => String(x).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+const cleanName = x => x.replace(/^[\s\-–—|•·:;,]+/, '').replace(/[\s\-–—|•·:;,]+$/, '').replace(/\s+/g, ' ');
+const TOKEN_RE = /\b(\d{1,2})(?::(\d{2}))?\s*(?:([ap])\.?\s?m\b\.?)?/gi;
+const NEW_COLORS = ['#EC4899', '#A855F7', '#14B8A6', '#EF4444', '#3B82F6', '#84CC16', '#F97316', '#78716C'];
+const guessIcon = x => /meet|reuni|sync|stand|1:1/i.test(x) ? '👥' : /train|capacit|treina|learn|curso|course/i.test(x) ? '🎓' : /call|phone|llamada|ligaç|ligac/i.test(x) ? '📞' : '📌';
+function clock(h, m, mer) {
+  if (m > 59) return NaN;
+  if (mer) { if (h < 1 || h > 12) return NaN; return ((h % 12) + (mer === 'p' ? 12 : 0)) * 60 + m; }
+  if (h > 24 || (h === 24 && m > 0)) return NaN;
+  return h * 60 + m;
+}
+// uma linha: "Nome  09:00 AM  11:00 AM  <qualquer coisa>"  (tabs, espaços, 12h ou 24h). Linhas sem horário são ignoradas.
+function parseLine(raw) {
+  const line = String(raw).replace(/\u00a0/g, ' ').trim(); if (!line) return null;
+  const toks = [];
+  for (const m of line.matchAll(TOKEN_RE)) {
+    if (m[2] === undefined && !m[3]) continue;
+    toks.push({ h: +m[1], m: m[2] === undefined ? 0 : +m[2], mer: m[3] ? m[3].toLowerCase() : '', i: m.index, j: m.index + m[0].length });
+  }
+  if (!toks.length) return null;
+  const r = { raw: line };
+  if (toks.length < 2) { r.err = 'pErrTime'; return r; }
+  const a = toks[0], b = toks[1];
+  r.name = cleanName(line.slice(0, a.i)) || cleanName(line.slice(b.j));
+  if (!nameKey(r.name)) { r.err = 'pErrName'; return r; }
+  let s, e;
+  if (!a.mer && b.mer && a.h >= 1 && a.h <= 12) {            // "9:00 – 11:00 AM": o início herda o AM/PM do fim
+    e = clock(b.h, b.m, b.mer); s = clock(a.h, a.m, b.mer);
+    if (s >= e) s = clock(a.h, a.m, b.mer === 'a' ? 'p' : 'a');
+  } else { s = clock(a.h, a.m, a.mer); e = clock(b.h, b.m, b.mer); }
+  if (isNaN(s) || isNaN(e)) { r.err = 'pErrTime'; return r; }
+  if (e <= s) { r.err = 'pErrOrder'; return r; }
+  if (e - s < MIN_DUR) { r.err = 'pErrShort'; return r; }
+  const s2 = Math.max(s, MIN_T), e2 = Math.min(e, MAX_T);
+  if (e2 - s2 < MIN_DUR) { r.err = 'pErrOut'; return r; }
+  r.start = s2; r.end = e2; r.clipped = s2 !== s || e2 !== e;
+  return r;
+}
+// lê o texto inteiro e descobre, para cada linha, a task (existente ou nova) e se cabe no dia
+function planPaste(text, replace) {
+  const key = curKey(), old = replace ? [] : dayEvents(key), got = [], pending = {}, rows = [];
+  const used = new Set(state.templates.map(t => String(t.color).toLowerCase()));
+  String(text).split(/\r?\n/).forEach(line => {
+    const r = parseLine(line); if (!r) return;
+    rows.push(r);
+    if (r.err) return;
+    if (old.some(x => r.start < x.end && r.end > x.start)) { r.err = 'pErrOverOld'; return; }
+    if (got.some(x => r.start < x.end && r.end > x.start)) { r.err = 'pErrOver'; return; }
+    got.push(r);
+    const k = nameKey(r.name);
+    let t = state.templates.find(x => nameKey(x.name) === k);
+    if (!t && k.length >= 4) {
+      const c = state.templates.filter(x => { const tk = nameKey(x.name); return tk.length >= 4 && (tk.startsWith(k) || k.startsWith(tk)); });
+      if (c.length === 1) t = c[0];
+    }
+    if (t) { r.tid = t.id; r.name = t.name; r.color = t.color; r.icon = t.icon; return; }
+    let p = pending[k];
+    if (!p) {
+      const color = NEW_COLORS.find(c => !used.has(c.toLowerCase())) || PALETTE[Object.keys(pending).length % PALETTE.length];
+      used.add(color.toLowerCase());
+      p = pending[k] = { name: r.name, color, icon: guessIcon(r.name), dur: Math.max(5, Math.round((r.end - r.start) / 5) * 5) };
+    }
+    r.pkey = k; r.isNew = true; r.color = p.color; r.icon = p.icon;
+  });
+  return { rows, valid: rows.filter(r => !r.err), pending };
+}
+function applyPaste(plan, replace) {
+  const key = curKey(), before = JSON.parse(JSON.stringify(dayEvents(key))), made = {}, madeIds = [];
+  plan.valid.forEach(r => {
+    if (r.tid || made[r.pkey]) return;
+    const p = plan.pending[r.pkey];
+    const t = { id: uid(), name: p.name, color: p.color, icon: p.icon, dur: p.dur, remindStart: true, remindEnd: false };
+    state.templates.push(t); made[r.pkey] = t.id; madeIds.push(t.id);
+  });
+  if (replace) state.events[key] = [];
+  const evs = dayEvents(key);
+  plan.valid.forEach(r => {
+    const t = tpl(r.tid || made[r.pkey]);
+    evs.push({ id: uid(), tid: t.id, name: t.name, color: t.color, icon: t.icon, start: r.start, end: r.end, remindStart: !!t.remindStart, remindEnd: !!t.remindEnd });
+  });
+  silenceDay(key); save(); closeModal(); renderAll();
+  const n = plan.valid.length;
+  toast(say('pasted', { n: `${n} ${say(n === 1 ? 'blockOne' : 'blockMany')}` }) + (madeIds.length ? ' · ' + say('pasteSumNew', { k: madeIds.length }) : ''), {
+    ms: 9000,
+    undo: () => {
+      state.events[key] = before; state.templates = state.templates.filter(t => !madeIds.includes(t.id));
+      save(); renderAll(); toast(say('undone'));
+    }
+  });
+}
+function openPasteModal(initial) {
+  const key = curKey(), have = dayEvents(key).length;
+  const ta = el('textarea', { rows: '6', spellcheck: 'false', placeholder: say('pastePh'), 'aria-label': say('pasteTitle') });
+  ta.value = initial || '';
+  const rep = el('input', { type: 'checkbox' }); rep.checked = true;
+  const list = el('div', { class: 'plist' }), sum = el('div', { class: 'psum' });
+  const go = el('button', { type: 'submit', class: 'btn primary' }, say('pasteGo'));
+  let plan = null;
+  const draw = () => {
+    plan = planPaste(ta.value, !have || rep.checked);
+    list.innerHTML = '';
+    plan.rows.forEach(r => {
+      if (r.err) {
+        list.append(el('div', { class: 'prow bad' }, el('span', { class: 'pr' }, r.raw.replace(/\s+/g, ' ')),
+          el('em', {}, say(r.err, { a: fmt(MIN_T), b: fmt(MAX_T), n: MIN_DUR }))));
+      } else {
+        list.append(el('div', { class: 'prow', style: blockStyle(r.color) }, el('span', { class: 'pi' }, r.icon), el('b', {}, r.name),
+          r.isNew ? el('em', {}, say('pasteNew')) : null, r.clipped ? el('em', {}, say('pasteClip')) : null,
+          el('span', { class: 'pt' }, `${fmt(r.start)} – ${fmt(r.end)}`)));
+      }
+    });
+    const bad = plan.rows.length - plan.valid.length, nn = Object.keys(plan.pending).length;
+    sum.textContent = !ta.value.trim() ? '' : !plan.rows.length ? say('pasteNone')
+      : [say('pasteSumOk', { n: plan.valid.length }), bad ? say('pasteSumSkip', { n: bad }) : '', nn ? say('pasteSumNew', { k: nn }) : ''].filter(Boolean).join(' · ');
+    go.disabled = !plan.valid.length;
+  };
+  ta.addEventListener('input', draw); rep.addEventListener('change', draw);
+  const form = el('form', { onsubmit: ev => { ev.preventDefault(); if (plan && plan.valid.length) applyPaste(plan, !have || rep.checked); } },
+    el('div', { class: 'pday' }, dateFull(cur)),
+    el('div', { class: 'field' }, ta),
+    have ? el('label', { class: 'check', style: 'margin-bottom:12px' }, rep, say('pasteReplace', { n: have })) : null,
+    list, sum,
+    el('div', { class: 'mfoot' }, el('span', { class: 'sp' }),
+      el('button', { type: 'button', class: 'btn', onclick: closeModal }, say('cancel')), go));
+  openModal(say('pasteTitle'), form, 'wide');
+  draw();
+  if (initial && plan.valid.length) go.focus(); else ta.focus();      // colou com Cmd+V → é só apertar Enter para confirmar
+}
+$('#pasteDay').onclick = () => openPasteModal('');
+// Cmd/Ctrl+V na página (fora de campos de texto): se o texto parecer um horário, abre a janela já preenchida
+document.addEventListener('paste', e => {
+  if (modalEl) return;
+  const a = document.activeElement;
+  if (a && (/INPUT|TEXTAREA|SELECT/.test(a.tagName) || a.isContentEditable)) return;
+  const txt = (e.clipboardData && e.clipboardData.getData('text')) || '';
+  if (!txt || txt.length > 20000 || !planPaste(txt, true).valid.length) return;
+  e.preventDefault(); openPasteModal(txt);
+});
+
 /* ================= Backup ================= */
 $('#exportBtn').onclick = () => {
   try {
@@ -1436,11 +1832,63 @@ function beep() {
     });
   } catch (e) {}
 }
-function notify(title, body, color, tag) {
-  reminderToast(title, body, color); beep();
+// quadradinho colorido (emoji) mais próximo da cor do bloco: dá cor ao título do aviso do sistema
+function colorSquare(hex) {
+  const h = String(hex || '#6366F1').replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16) / 255, g = parseInt(h.slice(2, 4), 16) / 255, b = parseInt(h.slice(4, 6), 16) / 255;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, l = (mx + mn) / 2;
+  if (!(d >= 0.08)) return l > 0.6 ? '⬜' : '⬛';
+  let hue = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  hue = (hue * 60 + 360) % 360;
+  if (hue < 15 || hue >= 330) return '🟥';
+  if (hue < 45) return '🟧';
+  if (hue < 70) return '🟨';
+  if (hue < 185) return '🟩';
+  if (hue < 225) return '🟦';
+  return '🟪';
+}
+// ícone quadrado na cor do bloco, com o emoji da task (usado no aviso do sistema e na aba do navegador)
+const iconCache = {};
+function alertIcon(color, emoji, size) {
+  const key = `${color}|${emoji}|${size}`;
+  if (iconCache[key]) return iconCache[key];
+  try {
+    const c = document.createElement('canvas'); c.width = c.height = size;
+    const x = c.getContext('2d'); if (!x) return '';
+    x.fillStyle = color; x.beginPath();
+    if (x.roundRect) x.roundRect(0, 0, size, size, size * 0.22); else x.rect(0, 0, size, size);
+    x.fill();
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.font = `${Math.round(size * 0.56)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+    x.fillText(emoji || '🔔', size / 2, size / 2 + size * 0.04);
+    return (iconCache[key] = c.toDataURL('image/png'));
+  } catch (e) { return ''; }
+}
+// aba em segundo plano: o título pisca com a cor do bloco e o ícone da aba muda, até você voltar
+let flashT = null, flashLink = null;
+function stopAttention() {
+  if (flashT) { clearInterval(flashT); flashT = null; document.title = say('pageTitle'); }
+  if (flashLink) { flashLink.remove(); flashLink = null; }
+}
+function startAttention(title, color, emoji) {
+  if (!document.hidden && document.hasFocus()) return;      // se você já está olhando a aba, o banner da página basta
+  stopAttention();
+  const dot = colorSquare(color), ic = alertIcon(color, emoji, 64);
+  if (ic) { flashLink = el('link', { rel: 'icon', type: 'image/png', href: ic }); document.head.append(flashLink); }
+  let on = false;
+  const tick = () => { on = !on; document.title = on ? `${dot} ${title}` : `🔔 ${say('pageTitle')}`; };
+  tick(); flashT = setInterval(tick, 900);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) stopAttention(); });
+window.addEventListener('focus', stopAttention);
+
+function notify(title, body, color, tag, emoji) {
+  reminderToast(title, body, color, emoji); beep(); startAttention(title, color, emoji);
   try {
     if ('Notification' in window && Notification.permission === 'granted') {
-      const n = new Notification(title, { body, tag, requireInteraction: true });
+      const opts = { body, tag, requireInteraction: true };
+      const ic = alertIcon(color, emoji, 128); if (ic) opts.icon = ic;
+      const n = new Notification(`${colorSquare(color)} ${emoji ? emoji + ' ' : ''}${title}`, opts);
       n.onclick = () => { window.focus(); n.close(); };
     }
   } catch (e) {}
@@ -1449,7 +1897,11 @@ $('#notifBtn').onclick = async () => {
   try { await Notification.requestPermission(); } catch (e) { toast(say('permFail')); }
   renderStatus();
 };
-$('#notifTest').onclick = () => notify(say('testTitle'), say('testBody'), '#6366F1', 'test');
+$('#notifTest').onclick = () => {          // dispara em 5 s para dar tempo de trocar de aba e ver o aviso em segundo plano
+  toast(say('testWait'), { ms: 5000 });
+  const c = (state.templates[0] && state.templates[0].color) || '#F59E0B';
+  setTimeout(() => notify(say('testTitle'), say('testBody'), c, 'test', '🔔'), 5000);
+};
 
 // marca como "já avisado" os gatilhos que já passaram ao editar/criar blocos de hoje (evita aviso atrasado)
 function silenceDay(key) {
@@ -1468,7 +1920,7 @@ function checkReminders() {
       const id = `${dk}|${e.id}|s|${e.start}`;
       if (!state.fired[id] && nm >= e.start && nm < Math.min(e.start + 2, e.end)) {
         state.fired[id] = 1; save();
-        notify(say('startsNow', { icon: e.icon || '⏰', name: e.name }), `${fmt(e.start)} – ${fmt(e.end)}`, e.color, id);
+        notify(say('startsNow', { name: e.name }), `${fmt(e.start)} – ${fmt(e.end)}`, e.color, id, e.icon || '⏰');
       }
     }
     if (e.remindEnd) {                         // 10 min antes de acabar
@@ -1476,13 +1928,44 @@ function checkReminders() {
       if (!state.fired[id] && nm >= Math.max(e.end - REMIND_BEFORE, e.start) && nm < e.end) {
         state.fired[id] = 1; save();
         const mins = Math.max(1, Math.ceil(e.end - nm));
-        notify(say('endsIn', { icon: e.icon || '⏰', name: e.name, n: mins }), say('endsAt', { e: fmt(e.end), s: fmt(e.start), f: fmt(e.end) }), e.color, id);
+        const title = e.tid === 't1' ? say('pause10') : say('endsIn', { name: e.name, n: mins });   // Chat+Email: o aviso de 10 min vira "10 minutes pause"
+        notify(title, say('endsAt', { e: fmt(e.end), s: fmt(e.start), f: fmt(e.end) }), e.color, id, e.icon || '⏰');
       }
     }
   });
 }
 
 /* ================= Init ================= */
+/* ================= Side panel (collapse) & settings ================= */
+function needsNotifSetup() { return ('Notification' in window) && Notification.permission !== 'granted'; }
+// "Settings" abre sozinho enquanto as notificações ainda não foram ativadas; depois lembra a sua escolha
+function setOpenNow() { return typeof state.settings.setOpen === 'boolean' ? state.settings.setOpen : (('Notification' in window) && Notification.permission === 'default'); }
+function applySide() {
+  const off = !!state.settings.sideOff, open = setOpenNow(), warn = needsNotifSetup();
+  document.body.classList.toggle('side-off', off);
+  $('#setBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+  $('#setBody').hidden = !open;
+  $('#setDot').classList.toggle('on', warn && !open);
+  $('#railDot').classList.toggle('on', warn);
+}
+function setSide(off) { state.settings.sideOff = off; save(); applySide(); relayout(); }
+$('#sideHide').onclick = () => setSide(true);
+$('#sideShow').onclick = () => setSide(false);
+$('#setBtn').onclick = () => { state.settings.setOpen = !setOpenNow(); save(); applySide(); };
+
+function applyTheme() {
+  const d = isDark();
+  document.documentElement.setAttribute('data-theme', d ? 'dark' : 'light');
+  const mt = $('#metaTheme'); if (mt) mt.setAttribute('content', d ? '#14161C' : '#F4F1EA');
+  const sw = $('#nightSw'); if (sw) sw.setAttribute('aria-checked', d ? 'true' : 'false');
+}
+$('#nightSw').onclick = () => {
+  state.settings.dark = !state.settings.dark; save();
+  const root = document.documentElement; root.classList.add('theme-fade');
+  applyTheme(); renderAll();
+  setTimeout(() => root.classList.remove('theme-fade'), 380);
+};
+
 function applyI18n() {
   const L = lang();
   document.documentElement.lang = LOCALE[L];
@@ -1501,7 +1984,9 @@ function setLang(l) {
 }
 LANGS.forEach(l => { const b = $('#lang-' + l); if (b) b.onclick = () => setLang(l); });
 
+applyTheme();
 applyI18n();
+applySide();
 buildAxis();
 renderAll();
 sizePanel();
